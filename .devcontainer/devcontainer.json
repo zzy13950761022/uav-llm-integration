@@ -48,5 +48,5 @@
   //   "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
   // ],
   // ***
-  "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/uav-llm-integration/"
+  "postCreateCommand": "rosdep fix-permissions && rosdep update && sudo rosdep install --from-paths src --ignore-src -y && sudo find /home/uav-llm-integration/ -path /home/uav-llm-integration/.git -prune -o -exec chown $(whoami) {} +"
 }
