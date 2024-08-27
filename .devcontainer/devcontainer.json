@@ -1,5 +1,5 @@
 {
-  "name": "uav-llm-integration-container",
+  "name": "ROS 2 Development Container",
   "privileged": true,
   "remoteUser": "conan",
   "build": {
@@ -8,8 +8,8 @@
       "USERNAME": "conan"
     }
   },
-  "workspaceFolder": "/home/uav-llm",
-  "workspaceMount": "source=${localWorkspaceFolder},target=/home/uav-llm,type=bind",
+  "workspaceFolder": "/home/uav-llm-integration",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/home/uav-llm-integration,type=bind",
   "customizations": {
     "vscode": {
       "extensions":[
@@ -22,18 +22,31 @@
       ]
     }
   },
+  // *** Mac Systems ***
   "containerEnv": {
-    "DISPLAY": "unix:0",
+    "DISPLAY": "host.docker.internal:0",
     "ROS_LOCALHOST_ONLY": "1",
     "ROS_DOMAIN_ID": "42"
   },
   "runArgs": [
     "--net=host",
-    "-e", "DISPLAY=${env:DISPLAY}"
+    "-e", "DISPLAY=host.docker.internal:0"
   ],
-  "mounts": [
-    "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
-    "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
-  ],
-  "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/uav-llm/"
+  // ***
+  // *** Linux Systems ***
+  // "containerEnv": {
+  //   "DISPLAY": "unix:0",
+  //   "ROS_LOCALHOST_ONLY": "1",
+  //   "ROS_DOMAIN_ID": "42"
+  // },
+  // "runArgs": [
+  //   "--net=host",
+  //   "-e", "DISPLAY=${env:DISPLAY}"
+  // ],
+  // "mounts": [
+  //   "source=/tmp/.X11-unix,target=/tmp/.X11-unix,type=bind,consistency=cached",
+  //   "source=/dev/dri,target=/dev/dri,type=bind,consistency=cached"
+  // ],
+  // ***
+  "postCreateCommand": "sudo rosdep update && sudo rosdep install --from-paths src --ignore-src -y && sudo chown -R $(whoami) /home/uav-llm-integration/"
 }
