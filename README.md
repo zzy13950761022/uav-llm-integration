@@ -1,0 +1,69 @@
+# uav-llm-integration
+MPE Research Project @ The University of Western Australia by Conan (Po) Dewitt
+
+## Installing ROS 2 and RVIZ for Simulation
+This implementation uses Tobias Fischer et al.'s [RoboStack](https://robostack.github.io/index.html), a bundling of ROS packages using the Conda package manager.
+
+#### Installing Mamba
+It should be noted here that the Anaconda should *not* be used here; [Miniforge](https://github.com/conda-forge/miniforge) is the preferred installer.
+
+Once Miniforge has been installed, Conda can be installed with:
+```sh
+conda install mamba -c conda-forge
+```
+
+#### Installing ROS 2
+Create a virtual environment:
+```sh
+mamba create -n uav-llm-integration-env python=3.11
+```
+
+Initialise the virtual environment:
+```sh
+mamba init <zsh>
+```
+If on macOS and using zshell, also include `zsh` at the end of the line, otherwise bash is assumed.
+
+Activate virtual environment:
+```sh
+mamba activate uav-llm-integration-env
+```
+
+Configure channels:
+```sh
+# this adds the conda-forge channel to the new created environment configuration 
+conda config --env --add channels conda-forge
+# and the robostack channel
+conda config --env --add channels robostack-staging
+# remove the defaults channel just in case, this might return an error if it is not in the list which is ok
+conda config --env --remove channels defaults
+```
+
+Install ROS 2 Humble:
+```sh
+mamba install ros-humble-desktop
+```
+
+Restart the environment:
+```sh
+mamba deactivate
+mamba activate uav-llm-integration-env
+```
+
+#### Installing development tools
+Default tools:
+```sh
+mamba install compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep gazebo
+```
+
+Other tools can be installed using:
+```sh
+mamba install <your_tool_of_choice>
+```
+
+#### Launching
+To launch a tool, for example RVIZ, use:
+```sh
+rviz2
+```
+As would be done on a native system.
