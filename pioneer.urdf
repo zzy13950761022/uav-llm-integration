@@ -5,7 +5,6 @@
 
   <!-- Chassis -->
   <link name="chassis">
-
     <inertial>
       <mass value="20.0"/>
       <origin xyz="0 0 -0.090"/>
@@ -36,10 +35,10 @@
   <plugin
       filename="ignition-gazebo-joint-state-publisher-system"
       name="ignition::gazebo::systems::JointStatePublisher">
-      <topic>joint_states</topic>
+    <topic>joint_states</topic>
   </plugin>
 
-  <!-- Top -->
+  <!-- Top Plate -->
   <link name="top_plate">
     <inertial>
       <mass value="0.1"/>
