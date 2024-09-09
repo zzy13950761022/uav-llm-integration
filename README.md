@@ -2,10 +2,10 @@
 MPE Research Project @ The University of Western Australia by Conan (Po) Dewitt
 
 ## Installing ROS 2 and RVIZ for Simulation
-This implementation uses Tobias Fischer et al.'s [RoboStack](https://robostack.github.io/index.html), a bundling of ROS packages using the Conda package manager.
+This simulation implementation uses Tobias Fischer et al.'s [RoboStack](https://robostack.github.io/index.html), a bundling of ROS packages using the Conda package manager.
 
 #### Installing Mamba
-It should be noted here that the Anaconda should *not* be used here; [Miniforge](https://github.com/conda-forge/miniforge) is the preferred installer.
+It should be noted here that the default Anaconda installer should *not* be used here; [Miniforge](https://github.com/conda-forge/miniforge) is the preferred installer.
 
 Once Miniforge has been installed, Conda can be installed with:
 ```sh
@@ -22,7 +22,7 @@ Initialise the virtual environment:
 ```sh
 mamba init <zsh>
 ```
-If on macOS and using zshell, also include `zsh` at the end of the line, otherwise bash is assumed.
+If on macOS and using zshell, include `zsh` at the end of the line, otherwise bash is assumed as the default shell.
 
 Activate virtual environment:
 ```sh
@@ -35,7 +35,7 @@ Configure channels:
 conda config --env --add channels conda-forge
 # and the robostack channel
 conda config --env --add channels robostack-staging
-# remove the defaults channel just in case, this might return an error if it is not in the list which is ok
+# remove the defaults channel just in case, THIS MIGHT RETURN AN ERROR if it is not in the list WHICH IS OK
 conda config --env --remove channels defaults
 ```
 
@@ -53,17 +53,10 @@ mamba activate uav-llm-integration-env
 #### Installing development tools
 Default tools:
 ```sh
-mamba install compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep gazebo
+mamba install compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep
 ```
 
 Other tools can be installed using:
 ```sh
-mamba install <your_tool_of_choice>
+mamba install <tool_of_choice>
 ```
-
-#### Launching
-To launch a tool, for example RVIZ, use:
-```sh
-rviz2
-```
-As would be done on a native system.
