@@ -24,7 +24,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/urdf', ['urdf/pioneer.urdf']),
         ('share/' + package_name + '/sdf', ['sdf/world.sdf']),
-        ('share/' + package_name + '/launch', ['launch/display.launch.py']),
+        ('share/' + package_name + '/launch', ['launch/simulation.launch.py']),
         ('share/' + package_name + '/rviz', ['rviz/default.rviz']),
     ] + [(os.path.join('share', package_name, os.path.dirname(f)), [f]) for f in mesh_files],
     install_requires=['setuptools'],

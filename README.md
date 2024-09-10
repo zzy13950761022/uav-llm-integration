@@ -53,7 +53,18 @@ mamba activate uav-llm-integration-env
 ### Installing development tools
 Required tools:
 ```sh
-mamba install compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep
+mamba install \
+  compilers \
+  cmake \
+  pkg-config \
+  make \
+  ninja \
+  colcon-common-extensions \
+  catkin_tools \
+  rosdep \
+  ros-humble-ros-gz-sim \
+  ros-humble-joint-state-publisher \
+  ros-humble-rqt-robot-steering
 ```
 
 Other tools can be installed using:
@@ -69,7 +80,7 @@ Install Ignition Fortress as instructed by [Gazebo](https://gazebosim.org/docs/f
 ## Running Simulations
 These following instructions will be the bulk of the implementation, that is unless, access to a Pioneer 3AT UAV exists.
 
-### Running in Gazebo
+### Quick test in Gazebo
 Launch Gazebo by running included the shell script:
 ```sh
 ./launch_gazebo.sh
@@ -100,7 +111,7 @@ A list of all available topics can be printed with:
 ign topic -l
 ```
 
-### Running in RVIZ
+### Running Gazebo and RVIZ
 Firstly, build the entire project with:
 ```sh
 colcon build
@@ -125,5 +136,5 @@ source install/setup.bash
 
 And finally, launch the RVIZ simulation package `uav_description`:
 ```sh
-ros2 launch uav_description display.launch.py
+ros2 launch uav_description simulation.launch.py
 ```
