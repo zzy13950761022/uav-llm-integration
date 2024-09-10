@@ -101,3 +101,29 @@ ign topic -l
 ```
 
 ### Running in RVIZ
+Firstly, build the entire project with:
+```sh
+colcon build
+```
+If you are experiencing an issue along the lines of:
+```sh
+...
+Traceback (most recent call last):tion - 0.1s]
+  File "<string>", line 1, in <module>
+ModuleNotFoundError: No module named 'setuptools.extern'
+...
+```
+Downgrade the packaged version of `setuptools` using:
+```sh
+pip install setuptools==65.5.1
+```
+
+Next, source the workspace:
+```sh
+source install/setup.bash
+```
+
+And finally, launch the RVIZ simulation package `uav_description`:
+```sh
+ros2 launch uav_description display.launch.py
+```
