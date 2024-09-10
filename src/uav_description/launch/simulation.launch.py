@@ -1,5 +1,4 @@
 import os
-
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import DeclareLaunchArgument, ExecuteProcess
@@ -8,9 +7,7 @@ from launch.substitutions import LaunchConfiguration
 from launch_ros.actions import Node
 
 def generate_launch_description():
-
     pkg_uav_description = get_package_share_directory('uav_description')
-
     sdf_file = os.path.join(pkg_uav_description, 'sdf', 'world.sdf')
     robot_file = os.path.join(pkg_uav_description, 'urdf', 'pioneer.urdf')
 
@@ -24,7 +21,7 @@ def generate_launch_description():
 
     # Launch Ignition Gazebo
     gazebo = ExecuteProcess(
-        cmd=['ign', 'gazebo', sdf_file],
+        cmd=['/usr/bin/ign', 'gazebo', sdf_file], # TODO: This is dodgy AF
         name='ignition_gazebo',
         output='screen'
     )
