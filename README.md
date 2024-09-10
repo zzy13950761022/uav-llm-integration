@@ -77,5 +77,5 @@ ign gazebo src/uav_description/sdf/world.sdf
 
 Then in a second terminal, place the Pioneer within that world with:
 ```sh
-ign service -s /world/pioneer_world/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 1000 --req 'sdf_filename: "src/uav_description/urdf/pioneer.urdf", name: "urdf_model"'
+ign service -s /world/pioneer_world/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 1000 --req 'sdf_filename: "src/uav_description/urdf/pioneer.urdf", name: "pioneer"'
 ```
