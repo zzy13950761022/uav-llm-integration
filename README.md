@@ -51,7 +51,7 @@ mamba activate uav-llm-integration-env
 ```
 
 #### Installing development tools
-Default tools:
+Required tools:
 ```sh
 mamba install compilers cmake pkg-config make ninja colcon-common-extensions catkin_tools rosdep
 ```
@@ -59,4 +59,23 @@ mamba install compilers cmake pkg-config make ninja colcon-common-extensions cat
 Other tools can be installed using:
 ```sh
 mamba install <tool_of_choice>
+```
+
+#### Installing Ignition Gazebo
+As of now, this integration of Gazebo only works on Linux and NOT MacOS (Windows is untested). This step is optional, however, heavily desired as the Gazebo simulation depicts what is happening to the UAV within an external physics engine, as opposed to the RVIZ simulation, which depicts what the UAV believes is happening, which is unreliable for real-world simulation.
+
+Install Ignition Fortress as instructed by [Gazebo](https://gazebosim.org/docs/fortress/install_ubuntu/).
+
+## Running Simulations
+These following instructions will be the bulk of your implementation, that is unless, you have access to a Pioneer 3ATn UAV.
+
+#### Running in Gazebo
+Firstly, launch a Gazebo server with the specified simulation world using:
+```sh
+ign gazebo src/uav_description/sdf/world.sdf
+```
+
+Then in a second terminal, place the Pioneer within that world with:
+```sh
+ign service -s /world/pioneer_world/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 1000 --req 'sdf_filename: "src/uav_description/urdf/pioneer.urdf", name: "urdf_model"'
 ```
