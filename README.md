@@ -47,7 +47,7 @@ mamba install ros-humble-desktop
 Restart the environment:
 ```sh
 mamba deactivate
-mamba activate uli-env
+mamba activate ./uli-env
 ```
 
 ### Installing development tools
@@ -64,7 +64,8 @@ mamba install \
   rosdep \
   ros-humble-ros-gz-sim \
   ros-humble-joint-state-publisher \
-  ros-humble-rqt-robot-steering
+  ros-humble-rqt-robot-steering \
+  ros-humble-ros-gz-sim
 ```
 
 Other tools can be installed using:
