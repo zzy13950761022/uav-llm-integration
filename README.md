@@ -15,7 +15,7 @@ conda install mamba -c conda-forge
 #### Installing ROS 2
 Create a virtual environment:
 ```sh
-mamba create -n uav-llm-integration-env python=3.11
+mamba create --prefix uli-env python=3.11
 ```
 
 Initialise the virtual environment:
@@ -26,7 +26,7 @@ If on macOS and using zshell, include `zsh` at the end of the line, otherwise ba
 
 Activate virtual environment:
 ```sh
-mamba activate uav-llm-integration-env
+mamba activate ./uli-env
 ```
 
 Configure channels:
@@ -47,7 +47,7 @@ mamba install ros-humble-desktop
 Restart the environment:
 ```sh
 mamba deactivate
-mamba activate uav-llm-integration-env
+mamba activate uli-env
 ```
 
 #### Installing development tools
