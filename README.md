@@ -15,18 +15,17 @@ conda install mamba -c conda-forge
 ### Installing ROS 2
 Create a virtual environment:
 ```sh
-mamba create --prefix uli-env python=3.11
+mamba create --name uli-env python=3.11
 ```
 
 Initialise the virtual environment:
 ```sh
-mamba init <zsh>
+mamba init
 ```
-If on macOS and using zshell, include `zsh` at the end of the line, otherwise bash is assumed as the default shell.
 
 Activate virtual environment:
 ```sh
-mamba activate ./uli-env
+mamba activate uli-env
 ```
 
 Configure channels:
@@ -47,7 +46,7 @@ mamba install ros-humble-desktop
 Restart the environment:
 ```sh
 mamba deactivate
-mamba activate ./uli-env
+mamba activate uli-env
 ```
 
 ### Installing development tools
@@ -63,9 +62,7 @@ mamba install \
   catkin_tools \
   rosdep \
   ros-humble-ros-gz-sim \
-  ros-humble-joint-state-publisher \
-  ros-humble-rqt-robot-steering \
-  ros-humble-ros-gz-sim
+  ros-humble-joint-state-publisher 
 ```
 
 Other tools can be installed using:
@@ -74,7 +71,7 @@ mamba install <tool_of_choice>
 ```
 
 ### Installing Ignition Gazebo
-As of now, this integration of Gazebo only works on Linux and NOT MacOS (Windows is untested). This step is optional, however, heavily desired as the Gazebo simulation depicts what is happening to the UAV within an external physics engine, as opposed to the RVIZ simulation, which depicts what the UAV believes is happening, which is unreliable for real-world simulation.
+The Gazebo simulation depicts what is happening to the UAV within an external physics engine, as opposed to the RVIZ simulation, which depicts what the UAV's sensors detect is happening.
 
 Install Ignition Fortress as instructed by [Gazebo](https://gazebosim.org/docs/fortress/install_ubuntu/).
 
