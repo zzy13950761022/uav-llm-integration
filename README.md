@@ -2,9 +2,9 @@
 MPE Research Project @ The University of Western Australia by Conan (Po) Dewitt
 
 ## Installing ROS 2 and Gazebo for Simulation
-This project utilises [ROS 2 Jazzy](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html) and [Gazebo Harmonic](https://gazebosim.org/docs/harmonic/install_ubuntu/). ROS is the foundational framework that provides the functionality needed for the UAV application and supports integration for simulated testing. Gazebo is a simulation environment that works with ROS, allowing the ROS packages to be tested within a realistic physics-based simulation.
+This project utilises [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) and [Gazebo Fortress](https://gazebosim.org/docs/fortress/install_ubuntu/). ROS is the foundational framework that provides the functionality needed for the UAV application and supports integration for simulated testing. Gazebo is a simulation environment that works with ROS, allowing the ROS packages to be tested within a realistic physics-based simulation.
 
-### Installing ROS 2 Jazzy
+### Installing ROS 2 Humble
 Enable required repositories:
 ```sh
 sudo apt install software-properties-common
@@ -14,23 +14,33 @@ sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o
 echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
 
-Install development tools:
-```sh
-sudo apt update && sudo apt install ros-dev-tools
-```
-
 Install ROS 2:
 ```sh
 sudo apt update
 sudo apt upgrade
-sudo apt install ros-jazzy-desktop
+sudo apt install ros-humble-desktop
+```
+
+Install development tools:
+```sh
+sudo apt install ros-dev-tools
 ```
 This installation also include RViz, an internal simulator that depicts the outputs of the UAV's on-board sensors.
 
-### Installing Ignition Gazebo
-The Gazebo simulation depicts what is happening to the UAV within an external physics engine, as opposed to the RVIZ simulation, which depicts what the UAV's sensors detect is happening.
+### Installing Gazebo Fortress
+Enable required repositories:
+```sh
+sudo apt install lsb-release gnupg
+sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+```
 
-Install Ignition Fortress as instructed by [Gazebo](https://gazebosim.org/docs/fortress/install_ubuntu/).
+Install Ignition Fortress:
+```sh
+sudo apt update
+sudo apt upgrade
+sudo apt install ignition-fortress
+```
 
 ## Running Simulations
 These following instructions will be the bulk of the implementation, that is unless, access to a Pioneer 3AT UAV exists.
@@ -70,18 +80,6 @@ ign topic -l
 Firstly, build the entire project with:
 ```sh
 colcon build
-```
-If you are experiencing an issue along the lines of:
-```sh
-...
-Traceback (most recent call last):tion - 0.1s]
-  File "<string>", line 1, in <module>
-ModuleNotFoundError: No module named 'setuptools.extern'
-...
-```
-Downgrade the packaged version of `setuptools` using:
-```sh
-pip install setuptools==65.5.1
 ```
 
 Next, source the workspace:
