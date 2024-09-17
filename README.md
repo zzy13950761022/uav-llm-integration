@@ -1,74 +1,31 @@
 # uav-llm-integration
 MPE Research Project @ The University of Western Australia by Conan (Po) Dewitt
 
-## Installing ROS 2 and RVIZ for Simulation
-This simulation implementation uses Tobias Fischer et al.'s [RoboStack](https://robostack.github.io/index.html), a bundling of ROS packages using the Conda package manager.
+## Installing ROS 2 and Gazebo for Simulation
+This project utilises [ROS 2 Jazzy](https://docs.ros.org/en/jazzy/Installation/Ubuntu-Install-Debs.html) and [Gazebo Harmonic](https://gazebosim.org/docs/harmonic/install_ubuntu/). ROS is the foundational framework that provides the functionality needed for the UAV application and supports integration for simulated testing. Gazebo is a simulation environment that works with ROS, allowing the ROS packages to be tested within a realistic physics-based simulation.
 
-### Installing Mamba
-It should be noted here that the default Anaconda installer should *not* be used here; [Miniforge](https://github.com/conda-forge/miniforge) is the preferred installer.
-
-Once Miniforge has been installed, Conda can be installed with:
+### Installing ROS 2 Jazzy
+Enable required repositories:
 ```sh
-conda install mamba -c conda-forge
+sudo apt install software-properties-common
+sudo add-apt-repository universe
+sudo apt update && sudo apt install curl -y
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
 ```
 
-### Installing ROS 2
-Create a virtual environment:
+Install development tools:
 ```sh
-mamba create --name uli-env python=3.11
+sudo apt update && sudo apt install ros-dev-tools
 ```
 
-Initialise the virtual environment:
+Install ROS 2:
 ```sh
-mamba init
+sudo apt update
+sudo apt upgrade
+sudo apt install ros-jazzy-desktop
 ```
-
-Activate virtual environment:
-```sh
-mamba activate uli-env
-```
-
-Configure channels:
-```sh
-# this adds the conda-forge channel to the new created environment configuration 
-conda config --env --add channels conda-forge
-# and the robostack channel
-conda config --env --add channels robostack-staging
-# remove the defaults channel just in case, THIS MIGHT RETURN AN ERROR if it is not in the list WHICH IS OK
-conda config --env --remove channels defaults
-```
-
-Install ROS 2 Humble:
-```sh
-mamba install ros-humble-desktop
-```
-
-Restart the environment:
-```sh
-mamba deactivate
-mamba activate uli-env
-```
-
-### Installing development tools
-Required tools:
-```sh
-mamba install \
-  compilers \
-  cmake \
-  pkg-config \
-  make \
-  ninja \
-  colcon-common-extensions \
-  catkin_tools \
-  rosdep \
-  ros-humble-ros-gz-sim \
-  ros-humble-joint-state-publisher 
-```
-
-Other tools can be installed using:
-```sh
-mamba install <tool_of_choice>
-```
+This installation also include RViz, an internal simulator that depicts the outputs of the UAV's on-board sensors.
 
 ### Installing Ignition Gazebo
 The Gazebo simulation depicts what is happening to the UAV within an external physics engine, as opposed to the RVIZ simulation, which depicts what the UAV's sensors detect is happening.
