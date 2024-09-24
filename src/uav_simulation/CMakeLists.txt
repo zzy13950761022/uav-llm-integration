@@ -24,3 +24,8 @@ if(BUILD_TESTING)
 endif()
 
 ament_package()
+
+install(
+  DIRECTORY config launch meshes sdf urdf
+  DESTINATION share/${PROJECT_NAME}
+)
