@@ -15,7 +15,6 @@ def generate_launch_description():
 
     world_path = os.path.join(pkg_ros_gz_sim_demos, 'sdf', 'world.sdf')
     uav_path = os.path.join(pkg_ros_gz_sim_demos, 'urdf', 'pioneer.urdf')
-    os.environ['GZ_SIM_RESOURCE_PATH'] = world_path + ':' + uav_path
 
     with open(world_path, 'r') as infp:
         world_desc = infp.read()
@@ -39,7 +38,7 @@ def generate_launch_description():
         ])}.items(),
     )
 
-    # Get the parser plugin convert sdf to urdf using uav_description topic
+    # Get the parser plugin convert sdf to urdf using robot_description topic
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -63,7 +62,7 @@ def generate_launch_description():
     )
 
     robot = ExecuteProcess(
-        cmd=['ros2', 'run', 'ros_gz_sim', 'create', '-topic', 'uav_description', '-z', '0.2'],
+        cmd=['ros2', 'run', 'ros_gz_sim', 'create', '-topic', 'robot_description', '-z', '0.2'],
         name='spawn rouavot',
         output='both'
     )
