@@ -5,7 +5,7 @@ MPE Research Project @ The University of Western Australia by Conan (Po) Dewitt
 This project utilises [ROS 2 Humble](https://docs.ros.org/en/humble/Installation/Ubuntu-Install-Debs.html) and [Gazebo Fortress](https://gazebosim.org/docs/fortress/install_ubuntu/). ROS is the foundational framework that provides the functionality needed for the UAV application and supports integration for simulated testing. Gazebo is a simulation environment that works with ROS, allowing the ROS packages to be tested within a realistic physics-based simulation.
 
 ### Installing ROS 2 Humble
-Enable required repositories:
+Enable the required ROS repositories:
 ```sh
 sudo apt install software-properties-common
 sudo add-apt-repository universe
@@ -21,14 +21,18 @@ sudo apt upgrade
 sudo apt install ros-humble-desktop
 ```
 
-Install development tools:
+Install the required packages for this project:
 ```sh
-sudo apt install ros-dev-tools
+./install_packages.sh
 ```
-This installation also include RViz, an internal simulator that depicts the outputs of the UAV's on-board sensors.
+
+Finally source the ROS installation:
+```sh
+source /opt/ros/humble/setup.bash
+```
 
 ### Installing Gazebo Fortress
-Enable required repositories:
+Enable the required Ignition repositories:
 ```sh
 sudo apt install lsb-release gnupg
 sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
