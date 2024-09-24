@@ -27,13 +27,13 @@ def generate_launch_description():
     uav_desc = uav_desc.replace('MESH_PATH', meshes_path)
 
     # Declare launch argument for RViz option
-    rviz_launch_arg = DeclareLaunchArgument(
+    launch_rviz_arg = DeclareLaunchArgument(
         'rviz', default_value='true',
         description='Launch RViz'
     )
 
     # Include Gazebo simulation launch file and specify the world SDF file
-    gazebo = IncludeLaunchDescription(
+    launch_gazebo = IncludeLaunchDescription(
         PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py'),
         ),
@@ -57,7 +57,7 @@ def generate_launch_description():
     )
 
     # Node to launch RViz if specified in the launch argument
-    rviz = Node(
+    launch_rviz = Node(
         package='rviz2',
         executable='rviz2',
         condition=IfCondition(LaunchConfiguration('rviz')),
@@ -67,14 +67,23 @@ def generate_launch_description():
     )
 
     # Execute process to spawn the UAV into the simulation environment
-    uav = ExecuteProcess(
+    spawn_uav = ExecuteProcess(
         cmd=['ros2', 'run', 'ros_gz_sim', 'create', '-topic', 'robot_description', '-z', '0.2'],
         name='spawn_uav',
         output='both'
     )
 
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=[
+        '/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan'
+        ,],
+        output='screen',
+    )
+
     # Node to publish joint states for the robot
-    joint_state_pub = Node(
+    joint_state_publisher = Node(
         package='joint_state_publisher',
         executable='joint_state_publisher'
     )
@@ -87,11 +96,12 @@ def generate_launch_description():
 
     # Return LaunchDescription object containing all the defined launch entities
     return LaunchDescription([
-        rviz_launch_arg,        # Argument to enable RViz
-        gazebo,                 # Gazebo simulator with specified world
-        uav,                    # Process to spawn the UAV into Gazebo
+        launch_rviz_arg,        # Argument to enable RViz
+        launch_gazebo,          # Gazebo simulator with specified world
+        spawn_uav,              # Process to spawn the UAV into Gazebo
+        bridge,
         robot_state_publisher,  # Publishes robot states
-        joint_state_pub,        # Publishes joint states for robot
-        rviz,                   # RViz for visualization
+        joint_state_publisher,  # Publishes joint states for robot
+        launch_rviz,            # RViz for visualization
         robot_steering          # GUI tool for controlling the robot
     ])

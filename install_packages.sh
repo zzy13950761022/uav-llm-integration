@@ -9,6 +9,7 @@ echo "Installing ROS 2 Humble packages..."
 sudo apt install -y \
   ros-dev-tools \
   ros-humble-ros-gz-sim \
+  ros-humble-ros-gz-bridge \
   ros-humble-joint-state-publisher \
   ros-humble-rqt-robot-steering
 
