@@ -49,37 +49,6 @@ sudo apt install ignition-fortress
 ## Running Simulations
 These following instructions will be the bulk of the implementation, that is unless, access to a Pioneer 3AT UAV exists.
 
-### Quick test in Gazebo
-Launch Gazebo by running included the shell script:
-```sh
-./launch_gazebo.sh
-```
-This should open up Gazebo, with the Pioneer placed. Refresh both the Camera and LIDAR topics in the right-hand-side menu after launching. At the bottom of said menu is also a manual override to control the UAV.
-
-To launch Gazebo manually, do the following;
-
-Firstly, launch a Gazebo server with the specified simulation world using:
-```sh
-ign gazebo src/uav_description/sdf/world.sdf
-```
-
-Then in a second terminal, place the Pioneer within that world with:
-```sh
-ign service -s /world/pioneer_world/create --reqtype ignition.msgs.EntityFactory --reptype ignition.msgs.Boolean --timeout 1000 --req 'sdf_filename: "src/uav_description/urdf/pioneer.urdf", name: "pioneer"'
-```
-
-To access the camera, LIDAR, and manual controls in Gazebo, go to the top-right-hand chevron and add `Image Display`, `Visualize Lidar`, and `Teleop` respectively.
-
-LIDAR data can be directly printed to the terminal using:
-```sh
-ign topic -e --topic /lidar
-```
-
-A list of all available topics can be printed with:
-```sh
-ign topic -l
-```
-
 ### Running Gazebo and RVIZ
 Firstly, build the entire project with:
 ```sh

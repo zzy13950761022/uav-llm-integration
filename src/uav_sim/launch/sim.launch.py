@@ -10,11 +10,11 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
 
-    pkg_ros_gz_sim_demos = get_package_share_directory('uav_simulation')
+    pkg_ros_gz_sim_demos = get_package_share_directory('uav_sim')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    world_file = os.path.join(pkg_ros_gz_sim_demos, 'sdf', 'world.sdf')
-    robot_file = os.path.join(pkg_ros_gz_sim_demos, 'urdf', 'pioneer.urdf')
+    world_file = os.path.join(pkg_ros_gz_sim_demos, 'models', 'sdf', 'world.sdf')
+    robot_file = os.path.join(pkg_ros_gz_sim_demos, 'models', 'urdf', 'pioneer.urdf')
 
     with open(world_file, 'r') as infp:
         world_desc = infp.read()
@@ -33,6 +33,7 @@ def generate_launch_description():
         ),
         launch_arguments={'gz_args': PathJoinSubstitution([
             pkg_ros_gz_sim_demos,
+            'models',
             'sdf',
             'world.sdf'
         ])}.items(),

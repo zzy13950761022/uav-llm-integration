@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(uav_simulation)
+project(uav_sim)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -25,7 +25,12 @@ endif()
 
 ament_package()
 
+# install package dependencies
 install(
-  DIRECTORY config launch meshes sdf urdf
+  DIRECTORY config launch
   DESTINATION share/${PROJECT_NAME}
+)
+install(
+  DIRECTORY models/meshes models/sdf models/urdf
+  DESTINATION share/${PROJECT_NAME}/models
 )
