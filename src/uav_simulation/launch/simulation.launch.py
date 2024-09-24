@@ -33,8 +33,8 @@ def generate_launch_description():
         ),
         launch_arguments={'gz_args': PathJoinSubstitution([
             pkg_ros_gz_sim_demos,
-            'worlds',
-            'basic_urdf.sdf'
+            'sdf',
+            'world.sdf'
         ])}.items(),
     )
 
