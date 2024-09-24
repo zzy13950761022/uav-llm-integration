@@ -13,18 +13,19 @@ def generate_launch_description():
     pkg_ros_gz_sim_demos = get_package_share_directory('uav_sim')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    world_file = os.path.join(pkg_ros_gz_sim_demos, 'models', 'sdf', 'world.sdf')
-    robot_file = os.path.join(pkg_ros_gz_sim_demos, 'models', 'urdf', 'pioneer.urdf')
+    world_path = os.path.join(pkg_ros_gz_sim_demos, 'sdf', 'world.sdf')
+    uav_path = os.path.join(pkg_ros_gz_sim_demos, 'urdf', 'pioneer.urdf')
+    os.environ['GZ_SIM_RESOURCE_PATH'] = world_path + ':' + uav_path
 
-    with open(world_file, 'r') as infp:
+    with open(world_path, 'r') as infp:
         world_desc = infp.read()
 
-    with open(robot_file, 'r') as infp:
-        robot_desc = infp.read()
+    with open(uav_path, 'r') as infp:
+        uav_desc = infp.read()
 
     rviz_launch_arg = DeclareLaunchArgument(
         'rviz', default_value='true',
-        description='Open RViz.'
+        description='launch rviz'
     )
 
     gazebo = IncludeLaunchDescription(
@@ -33,13 +34,12 @@ def generate_launch_description():
         ),
         launch_arguments={'gz_args': PathJoinSubstitution([
             pkg_ros_gz_sim_demos,
-            'models',
             'sdf',
             'world.sdf'
         ])}.items(),
     )
 
-    # Get the parser plugin convert sdf to urdf using robot_description topic
+    # Get the parser plugin convert sdf to urdf using uav_description topic
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
@@ -47,7 +47,7 @@ def generate_launch_description():
         output='both',
         parameters=[
             {'use_sim_time': True},
-            {'robot_description': robot_desc},
+            {'robot_description': uav_desc},
         ]
     )
 
@@ -63,9 +63,9 @@ def generate_launch_description():
     )
 
     robot = ExecuteProcess(
-        cmd=["ros2", "run", "ros_gz_sim", "create", "-topic", "robot_description", "-z", "0.2"],
-        name="spawn robot",
-        output="both"
+        cmd=['ros2', 'run', 'ros_gz_sim', 'create', '-topic', 'uav_description', '-z', '0.2'],
+        name='spawn rouavot',
+        output='both'
     )
 
     joint_state_pub = Node(
@@ -75,8 +75,8 @@ def generate_launch_description():
 
     # A gui tool for easy tele-operation.
     robot_steering = Node(
-        package="rqt_robot_steering",
-        executable="rqt_robot_steering",
+        package='rqt_robot_steering',
+        executable='rqt_robot_steering',
     )
 
     return LaunchDescription([

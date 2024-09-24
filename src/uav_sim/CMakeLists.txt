@@ -25,12 +25,8 @@ endif()
 
 ament_package()
 
-# install package dependencies
+# install dependencies
 install(
-  DIRECTORY config launch
+  DIRECTORY config launch meshes sdf urdf
   DESTINATION share/${PROJECT_NAME}
-)
-install(
-  DIRECTORY models/meshes models/sdf models/urdf
-  DESTINATION share/${PROJECT_NAME}/models
 )
