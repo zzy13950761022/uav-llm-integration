@@ -12,10 +12,12 @@ def generate_launch_description():
     pkg_ros_gz_sim_uav_sim = get_package_share_directory('uav_sim')
     pkg_ros_gz_sim = get_package_share_directory('ros_gz_sim')
 
-    # Define paths for meshes, SDF world file, and URDF UAV model
+    # Define paths for meshes, SDF world file, URDF UAV model, and GUI templates
     meshes_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'meshes')
     world_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'sdf', 'world.sdf')
     uav_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'urdf', 'pioneer.urdf')
+    rviz_config_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'config', 'config.rviz')
+    gazebo_config_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'config', 'gazebo.config')
     with open(world_path, 'r') as infp:
         world_desc = infp.read()
     with open(uav_path, 'r') as infp:
@@ -32,6 +34,7 @@ def generate_launch_description():
     launch_rviz = Node(
         package='rviz2',
         executable='rviz2',
+        arguments=['-d', rviz_config_path],  # Specify custom RViz config file
         condition=IfCondition(LaunchConfiguration('rviz')),
         parameters=[
             {'use_sim_time': True},
@@ -43,11 +46,10 @@ def generate_launch_description():
         PythonLaunchDescriptionSource(
             os.path.join(pkg_ros_gz_sim, 'launch', 'gz_sim.launch.py'),
         ),
-        launch_arguments={'gz_args': PathJoinSubstitution([
-            pkg_ros_gz_sim_uav_sim,
-            'sdf',
-            'world.sdf'
-        ])}.items(),
+        launch_arguments={
+            'gz_args': PathJoinSubstitution([pkg_ros_gz_sim_uav_sim, 'sdf', 'world.sdf']),
+            'config': gazebo_config_path  # Pass custom Gazebo configuration file
+        }.items(),
     )
 
     # Spawn the UAV into the simulation environment
