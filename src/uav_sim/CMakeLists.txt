@@ -27,6 +27,6 @@ ament_package()
 
 # install dependencies
 install(
-  DIRECTORY config launch meshes sdf urdf
+  DIRECTORY config launch meshes urdf worlds
   DESTINATION share/${PROJECT_NAME}
 )

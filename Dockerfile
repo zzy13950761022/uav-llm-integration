@@ -41,7 +41,7 @@ WORKDIR /home/developer
 RUN mkdir -p ~/uav-llm-integration/src
 
 # Copy the entire context (including your ROS project) into the container
-COPY --chown=developer:developer . /home/developer/uav-llm-integration/src/
+COPY --chown=developer:developer src/ /home/developer/uav-llm-integration/src/
 
 # Build the ROS workspace
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration && colcon build"
