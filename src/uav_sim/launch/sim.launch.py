@@ -14,8 +14,8 @@ def generate_launch_description():
 
     # Define paths for meshes, SDF world file, URDF UAV model, and GUI templates
     meshes_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'meshes')
-    world_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'sdf', 'world.sdf')
     uav_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'urdf', 'pioneer.urdf')
+    world_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'sdf', 'world.sdf')
     rviz_config_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'config', 'config.rviz')
     gazebo_config_path = os.path.join(pkg_ros_gz_sim_uav_sim, 'config', 'gazebo.config')
     with open(world_path, 'r') as infp:
@@ -77,10 +77,9 @@ def generate_launch_description():
         output='both',
         parameters=[
             {'use_sim_time': True},
-            {'robot_description': uav_desc},  # Send the UAV description to the robot_description topic
+            {'robot_description': uav_desc},
         ]
     )
-
     # Publish the simulation's state for synchronisation
     joint_state_publisher = Node(
         package='joint_state_publisher',
@@ -94,6 +93,7 @@ def generate_launch_description():
     )
 
     # Return LaunchDescription object containing all the defined launch entities
+    print(f"Processed URDF (first 500 characters): {uav_desc[:500]}")
     return LaunchDescription([
         launch_rviz_arg,
         launch_rviz,
