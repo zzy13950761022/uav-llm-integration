@@ -55,7 +55,7 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration &
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
 # Set environment variables
-ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/uav_sim/meshes:/home/pioneer-container/uav-llm-integration/install/uav_sim/share/uav_sim/models:/home/pioneer-container/uav-llm-integration/install/uav_sim/share/uav_sim/worlds
+ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
 
 # Set the entrypoint
 ENTRYPOINT ["/bin/bash"]
