@@ -1,35 +1,45 @@
 import os
 from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
-from launch.actions import IncludeLaunchDescription, ExecuteProcess
+from launch.actions import ExecuteProcess, IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
 from launch_ros.actions import Node
 
 def generate_launch_description():
     pkg_uav_sim = get_package_share_directory('uav_sim')
+    models_path = pkg_uav_sim + '/models'
+    worlds_path = pkg_uav_sim + '/worlds'
     
-    # Gazebo launch
-    gazebo = IncludeLaunchDescription(
-        PythonLaunchDescriptionSource([os.path.join(
-            get_package_share_directory('gazebo_ros'), 'launch', 'gazebo.launch.py')]),
-        launch_arguments={'world': os.path.join(pkg_uav_sim, 'worlds', 'world.sdf')}.items()
+    # Gazebo Harmonic launch
+    gz_sim = ExecuteProcess(
+        cmd=['gz', 'sim', '-r', worlds_path + '/world.sdf'],
+        output='screen'
+    )
+
+    # ROS GZ bridge
+    bridge = Node(
+        package='ros_gz_bridge',
+        executable='parameter_bridge',
+        arguments=['/clock@rosgraph_msgs/msg/Clock[gz.msgs.Clock'],
+        output='screen'
     )
 
     # Robot state publisher
-    urdf_file = os.path.join(pkg_uav_sim, 'urdf', 'pioneer.urdf')
     robot_state_publisher = Node(
         package='robot_state_publisher',
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        parameters=[{'robot_description': open(urdf_file).read()}]
+        parameters=[{'robot_description': open(models_path + '/pioneer.urdf').read()}]
     )
 
-    # Spawn the robot in Gazebo
+    # Spawn the robot in Gazebo Harmonic
     spawn_entity = Node(
-        package='gazebo_ros', 
-        executable='spawn_entity.py',
-        arguments=['-entity', 'pioneer', '-topic', 'robot_description'],
+        package='ros_gz_sim',
+        executable='create',
+        arguments=['-name', 'pioneer', 
+                   '-topic', 'robot_description', 
+                   '-x', '0', '-y', '0', '-z', '0.5'],
         output='screen'
     )
 
@@ -44,7 +54,8 @@ def generate_launch_description():
     )
 
     return LaunchDescription([
-        gazebo,
+        gz_sim,
+        bridge,
         robot_state_publisher,
         spawn_entity,
         rviz

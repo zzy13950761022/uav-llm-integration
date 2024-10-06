@@ -2,16 +2,17 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>uav_sim</name>
-  <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="conanpodewitt@gmail.com">conan</maintainer>
+  <version>0.0.1</version>
+  <description>A ROS 2 package for simulating a UAV based on Pioneer 3AT with Gazebo Harmonic and RViz</description>
+  <maintainer email="your_email@example.com">Your Name</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
   <depend>rclcpp</depend>
   <depend>rclpy</depend>
-  <depend>gazebo_ros</depend>
+  <depend>ros_gz_sim</depend>
+  <depend>ros_gz_bridge</depend>
   <depend>rviz2</depend>
   <depend>xacro</depend>
   <depend>robot_state_publisher</depend>
