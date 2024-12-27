@@ -26,11 +26,11 @@ xhost +local:docker
 # Run the container
 echo "Running the Docker container..."
 docker run -it --rm \
-  --name $CONTAINER_NAME \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  --device /dev/dri \
-  $IMAGE_NAME
+    --name $CONTAINER_NAME \
+    -e DISPLAY=$DISPLAY \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    --device /dev/dri \
+    $IMAGE_NAME
 
 # Reset X server access
 xhost -local:docker
