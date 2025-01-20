@@ -99,8 +99,8 @@
     <material value='Gazebo/Grey'/>
   </gazebo>
   <joint name='base_front_left_axle_joint' type='fixed'>
-    <origin rpy='0 0 0' xyz='0.135 0.156 0.111'/>
-    <parent link='base_link'/>
+    <origin rpy='0 0 0' xyz='0.135 0.156 -0.066'/>
+    <parent link='chassis'/>
     <child link='p3at_front_left_axle'/>
   </joint>
   <link name='p3at_front_left_hub'>
@@ -200,8 +200,8 @@
     <material value='Gazebo/Grey'/>
   </gazebo>
   <joint name='base_front_right_axle_joint' type='fixed'>
-    <origin rpy='0 0 0' xyz='0.135 -0.156 0.111'/>
-    <parent link='base_link'/>
+    <origin rpy='0 0 0' xyz='0.135 -0.156 -0.066'/>
+    <parent link='chassis'/>
     <child link='p3at_front_right_axle'/>
   </joint>
   <link name='p3at_front_right_hub'>
@@ -301,8 +301,8 @@
     <material value='Gazebo/Grey'/>
   </gazebo>
   <joint name='base_back_left_axle_joint' type='fixed'>
-    <origin rpy='0 0 0' xyz='-0.135 0.156 0.111'/>
-    <parent link='base_link'/>
+    <origin rpy='0 0 0' xyz='-0.135 0.156 -0.066'/>
+    <parent link='chassis'/>
     <child link='p3at_back_left_axle'/>
   </joint>
   <link name='p3at_back_left_hub'>
@@ -402,8 +402,8 @@
     <material value='Gazebo/Grey'/>
   </gazebo>
   <joint name='base_back_right_axle_joint' type='fixed'>
-    <origin rpy='0 0 0' xyz='-0.135 -0.156 0.111'/>
-    <parent link='base_link'/>
+    <origin rpy='0 0 0' xyz='-0.135 -0.156 -0.066'/>
+    <parent link='chassis'/>
     <child link='p3at_back_right_axle'/>
   </joint>
   <link name='p3at_back_right_hub'>
