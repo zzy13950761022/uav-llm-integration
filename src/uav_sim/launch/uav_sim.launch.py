@@ -26,20 +26,17 @@ def generate_launch_description():
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=[
-            '/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
-            '/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
-            '/world/default/model/pioneer3at_body/joint_state@sensor_msgs/msg/JointState@ignition.msgs.Model',
-            '/world/default/model/pioneer3at_body/pose@geometry_msgs/msg/PoseStamped@ignition.msgs.Pose',
-            '/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
-            '/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
-            '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',
-        ],
+        arguments=['/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
+                    '/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
+                    '/model/pioneer3at_body/odometry@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
+                    '/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
+                    '/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
+                    '/model/pioneer3at_body/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
+                    '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',],
         output='screen',
-        remappings=[
-            ('/cmd_vel', '/cmd_vel'),
-            ('/world/default/model/pioneer3at_body/joint_state', '/joint_states'),
-            ('/world/default/model/pioneer3at_body/pose', '/robot_pose')
+        remappings=[('/cmd_vel','/cmd_vel'),
+                    ('/model/pioneer3at_body/odometry','/odom'),
+                    ('/model/pioneer3at_body/tf','/tf')
         ]
     )
 
@@ -49,14 +46,7 @@ def generate_launch_description():
         executable='robot_state_publisher',
         name='robot_state_publisher',
         output='screen',
-        parameters=[{
-            'robot_description': open(models_path + '/pioneer.urdf').read(),
-            'use_sim_time': True,
-            'tf_prefix': 'pioneer'  # Add this line
-        }],
-        remappings=[
-            ('/joint_states', '/joint_states')
-        ]
+        parameters=[{'robot_description': open(models_path + '/pioneer.urdf').read()}]
     )
 
     # Spawn the robot in Gazebo Harmonic
@@ -69,7 +59,7 @@ def generate_launch_description():
         output='screen'
     )
 
-    # RViz
+    # RViz2 launch
     rviz = Node(
         package='rviz2',
         executable='rviz2',
@@ -81,26 +71,7 @@ def generate_launch_description():
     # Joint state publisher
     joint_state_publisher = Node(
         package='joint_state_publisher',
-        executable='joint_state_publisher',
-        name='joint_state_publisher',
-        parameters=[{'use_sim_time': True}],
-        remappings=[
-            ('joint_states', '/joint_states')
-        ]
-    )
-
-    # Static transform publishers
-    transform_broadcaster = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        parameters=[{'use_sim_time': True}],
-        arguments=['0', '0', '0', '0', '0', '0', 'world', 'map']
-    )
-    odom_broadcaster = Node(
-        package='tf2_ros',
-        executable='static_transform_publisher',
-        parameters=[{'use_sim_time': True}],
-        arguments=['0', '0', '0', '0', '0', '0', 'map', 'odom']
+        executable='joint_state_publisher'
     )
 
     return LaunchDescription([
@@ -110,6 +81,4 @@ def generate_launch_description():
         spawn_entity,
         rviz,
         joint_state_publisher,
-        transform_broadcaster,
-        odom_broadcaster
     ])
