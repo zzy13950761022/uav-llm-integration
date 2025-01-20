@@ -26,23 +26,18 @@ def generate_launch_description():
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=[
-            # System topics (Gazebo -> ROS)
-            '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',
-            # Transform topics (Gazebo -> ROS)
-            '/pioneer/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
-            # State topics (Gazebo -> ROS)
-            '/pioneer/joint_states@sensor_msgs/msg/JointState@ignition.msgs.Model',
-            '/pioneer/odom@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
-            # Sensor topics (Gazebo -> ROS)
-            '/pioneer/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
-            '/pioneer/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
-            '/pioneer/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
-            '/pioneer/camera/camera_info@sensor_msgs/msg/CameraInfo@ignition.msgs.CameraInfo',
-            # Control topics (ROS -> Gazebo)
-            '/pioneer/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
-        ],
-        output='screen'
+        arguments=['/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
+                    '/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
+                    '/model/pioneer3at_body/odometry@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
+                    '/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
+                    '/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
+                    '/model/pioneer3at_body/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
+                    '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',],
+        output='screen',
+        remappings=[('/cmd_vel','/cmd_vel'),
+                    ('/model/pioneer3at_body/odometry','/odom'),
+                    ('/model/pioneer3at_body/tf','/tf')
+        ]
     )
 
     # Robot state publisher
@@ -70,12 +65,11 @@ def generate_launch_description():
     )
 
     # RViz
-    rviz_config_file = os.path.join(pkg_uav_sim, 'config', 'rviz_config.rviz')
     rviz = Node(
         package='rviz2',
         executable='rviz2',
         name='rviz2',
-        arguments=['-d', rviz_config_file],
+        arguments=['-d', config_path + '/rviz_config.rviz'],
         output='screen'
     )
 
