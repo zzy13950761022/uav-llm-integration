@@ -26,17 +26,20 @@ def generate_launch_description():
     bridge = Node(
         package='ros_gz_bridge',
         executable='parameter_bridge',
-        arguments=['/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
-                    '/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
-                    '/model/pioneer3at_body/odometry@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
-                    '/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
-                    '/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
-                    '/model/pioneer3at_body/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
-                    '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',],
+        arguments=[
+            '/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
+            '/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
+            '/model/pioneer3at_body/odometry@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
+            '/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
+            '/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
+            '/model/pioneer3at_body/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
+            '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',
+        ],
         output='screen',
-        remappings=[('/cmd_vel','/cmd_vel'),
-                    ('/model/pioneer3at_body/odometry','/odom'),
-                    ('/model/pioneer3at_body/tf','/tf')
+        remappings=[
+            ('/cmd_vel','/cmd_vel'),
+            ('/model/pioneer3at_body/odometry','/odom'),
+            ('/model/pioneer3at_body/tf','/tf')
         ]
     )
 
