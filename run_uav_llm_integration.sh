@@ -26,11 +26,14 @@ xhost +local:docker
 # Run the container
 echo "Running the Docker container..."
 docker run -it --rm \
-  --name $CONTAINER_NAME \
-  -e DISPLAY=$DISPLAY \
-  -v /tmp/.X11-unix:/tmp/.X11-unix \
-  --device /dev/dri \
-  $IMAGE_NAME
+    --name $CONTAINER_NAME \
+    -e DISPLAY=$DISPLAY \
+    -e LIBGL_ALWAYS_SOFTWARE=1 \
+    -e __GLX_VENDOR_LIBRARY_NAME=mesa \
+    -e NO_AT_BRIDGE=1 \
+    -e QT_X11_NO_MITSHM=1 \
+    -v /tmp/.X11-unix:/tmp/.X11-unix \
+    $IMAGE_NAME
 
 # Reset X server access
 xhost -local:docker

@@ -13,6 +13,14 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
+# Install additional packages for simulation
+RUN apt-get update && apt-get install -y \
+    libegl-mesa0 \
+    libgl-dev \
+    mesa-utils \
+    xvfb \
+    && rm -rf /var/lib/apt/lists/*
+
 # Set up ROS 2 Jazzy repositories
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
 RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
@@ -34,28 +42,29 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-rviz2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set up environment variables
+# Set environment variables
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
 
-# Create a new user to run GUI applications
+# Create new user to run GUI applications
 RUN useradd -m pioneer-container && echo "pioneer-container:password" | chpasswd && adduser pioneer-container sudo
 USER pioneer-container
 WORKDIR /home/pioneer-container
 
-# Create a ROS workspace
+# Create ROS workspace
 RUN mkdir -p ~/uav-llm-integration/src
 
-# Copy the entire context (including your ROS project) into the container
+# Copy entire context (including ROS project) into container
 COPY --chown=pioneer-container:pioneer-container src/ /home/pioneer-container/uav-llm-integration/src/
 
-# Build the ROS workspace
+# Build ROS workspace
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration && colcon build"
 
-# Source the workspace in .bashrc
+# Source workspace in .bashrc
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
-# Set environment variables
+# Set simulation environment variables
 ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
+ENV XDG_RUNTIME_DIR=/tmp/runtime-pioneer-container
 
 # Set the entrypoint
 ENTRYPOINT ["/bin/bash"]

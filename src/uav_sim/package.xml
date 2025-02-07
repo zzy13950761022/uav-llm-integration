@@ -4,7 +4,7 @@
   <name>uav_sim</name>
   <version>0.0.1</version>
   <description>A ROS 2 package for simulating a UAV based on Pioneer 3AT with Gazebo Harmonic and RViz</description>
-  <maintainer email="your_email@example.com">Your Name</maintainer>
+  <maintainer email="22877792@student.uwa.edu.au">Conan Po Dewitt</maintainer>
   <license>TODO: License declaration</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
