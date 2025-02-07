@@ -520,7 +520,7 @@
   </link>
   <gazebo reference='laser_frame'>
     <sensor name='gpu_lidar' type='gpu_lidar'>
-      <ignition_frame_id>laser_frame</ignition_frame_id>
+      <!-- <ignition_frame_id>laser_frame</ignition_frame_id> -->
       <pose relative_to='laser_frame'>0 0 0 0 0 0</pose>
       <topic>lidar</topic>
       <update_rate>10</update_rate>
