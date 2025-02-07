@@ -22,15 +22,28 @@ def generate_launch_description():
     
     # Launch static transform publisher (without sim time) after 1 second delay
     # This publishes a constant transform from 'laser_frame' to 'pioneer/base_link/gpu_lidar'
-    static_tf_publisher = TimerAction(
+    static_tf_lidar = TimerAction(
         period=1.0,
         actions=[
             Node(
                 package='tf2_ros',
                 executable='static_transform_publisher',
-                name='static_transform_publisher',
+                name='static_transform_publisher_lidar',
                 arguments=['0', '0', '0', '0', '0', '0', 'laser_frame', 'pioneer/base_link/gpu_lidar'],
                 # Do NOT use sim time here so the transform is available immediately.
+                output='screen'
+            )
+        ]
+    )
+    # This publishes a constant transform from 'odom' to 'base_link'
+    static_tf_odom = TimerAction(
+        period=1.0,
+        actions=[
+            Node(
+                package='tf2_ros',
+                executable='static_transform_publisher',
+                name='static_transform_publisher_odom',
+                arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_link'],
                 output='screen'
             )
         ]
@@ -95,17 +108,17 @@ def generate_launch_description():
                 arguments=[
                     '/lidar@sensor_msgs/msg/LaserScan@ignition.msgs.LaserScan',
                     '/imu@sensor_msgs/msg/Imu@ignition.msgs.IMU',
-                    '/model/pioneer3at_body/odometry@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
+                    '/model/pioneer/odometry@nav_msgs/msg/Odometry@ignition.msgs.Odometry',
                     '/cmd_vel@geometry_msgs/msg/Twist@ignition.msgs.Twist',
                     '/camera@sensor_msgs/msg/Image@ignition.msgs.Image',
-                    '/model/pioneer3at_body/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
+                    '/model/pioneer/tf@tf2_msgs/msg/TFMessage@ignition.msgs.Pose_V',
                     '/clock@rosgraph_msgs/msg/Clock@ignition.msgs.Clock',
                 ],
                 parameters=[{'use_sim_time': True}],
                 remappings=[
                     ('/cmd_vel', '/cmd_vel'),
-                    ('/model/pioneer3at_body/odometry', '/odom'),
-                    ('/model/pioneer3at_body/tf', '/tf')
+                    ('/model/pioneer/odometry', '/odom'),
+                    ('/model/pioneer/tf', '/tf')
                 ],
                 output='screen'
             )
@@ -129,7 +142,8 @@ def generate_launch_description():
     
     return LaunchDescription([
         gz_sim,
-        static_tf_publisher,
+        static_tf_lidar,
+        static_tf_odom,
         spawn_entity,
         robot_state_publisher,
         joint_state_publisher,
