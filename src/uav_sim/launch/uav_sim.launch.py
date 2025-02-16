@@ -29,13 +29,17 @@ def generate_launch_description():
                 package='tf2_ros',
                 executable='static_transform_publisher',
                 name='static_transform_publisher_lidar',
-                arguments=['0', '0', '0', '0', '0', '0', 'laser_frame', 'pioneer/base_link/gpu_lidar'],
-                # Do NOT use sim time here so the transform is available immediately.
+                arguments=[
+                    '--x', '0', '--y', '0', '--z', '0',
+                    '--roll', '0', '--pitch', '0', '--yaw', '0',
+                    '--frame-id', 'laser_frame',
+                    '--child-frame-id', 'pioneer/base_link/gpu_lidar'
+                ],
                 output='screen'
             )
         ]
     )
-    # This publishes a constant transform from 'odom' to 'base_link'
+
     static_tf_odom = TimerAction(
         period=1.0,
         actions=[
@@ -43,7 +47,12 @@ def generate_launch_description():
                 package='tf2_ros',
                 executable='static_transform_publisher',
                 name='static_transform_publisher_odom',
-                arguments=['0', '0', '0', '0', '0', '0', 'odom', 'base_link'],
+                arguments=[
+                    '--x', '0', '--y', '0', '--z', '0',
+                    '--roll', '0', '--pitch', '0', '--yaw', '0',
+                    '--frame-id', 'odom',
+                    '--child-frame-id', 'base_link'
+                ],
                 output='screen'
             )
         ]
@@ -86,7 +95,7 @@ def generate_launch_description():
     
     # Launch joint_state_publisher after a 2-second delay
     joint_state_publisher = TimerAction(
-        period=2.0,
+        period=3.0,
         actions=[
             Node(
                 package='joint_state_publisher',
@@ -100,7 +109,7 @@ def generate_launch_description():
     
     # Launch the ROS–Gazebo bridge after a 2-second delay
     bridge = TimerAction(
-        period=2.0,
+        period=3.0,
         actions=[
             Node(
                 package='ros_gz_bridge',
