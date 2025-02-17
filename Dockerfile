@@ -45,14 +45,14 @@ RUN apt-get update && apt-get install -y \
 # Set environment variables
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
 
+# Install pip and additional Python packages for LLM integration
+RUN apt-get update && apt-get install -y python3-pip
+RUN pip3 install --break-system-packages requests opencv-python
+
 # Create new user to run GUI applications
 RUN useradd -m pioneer-container && echo "pioneer-container:password" | chpasswd && adduser pioneer-container sudo
 USER pioneer-container
 WORKDIR /home/pioneer-container
-
-# Install pip and additional Python packages for LLM integration
-RUN apt-get update && apt-get install -y python3-pip
-RUN pip3 install requests opencv-python
 
 # Create ROS workspace
 RUN mkdir -p ~/uav-llm-integration/src
