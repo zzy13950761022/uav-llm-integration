@@ -3,6 +3,7 @@
 # Define the image name
 IMAGE_NAME="uav-llm-integration"
 CONTAINER_NAME="uav-llm-integration-container"
+ENV_FILE=".env"
 
 # Remove any existing container with the same name
 if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
@@ -18,7 +19,7 @@ fi
 
 # Build the Docker image
 echo "Building Docker image: $IMAGE_NAME"
-docker build -t $IMAGE_NAME .
+docker build --build-arg LLM_API_KEY=$(grep LLM_API_KEY "$ENV_FILE" | cut -d '=' -f2) -t $IMAGE_NAME .
 
 # Allow Docker access to the X server for GUI applications
 xhost +local:docker
@@ -27,6 +28,7 @@ xhost +local:docker
 echo "Running the Docker container..."
 docker run -it --rm \
     --name $CONTAINER_NAME \
+    --env-file $ENV_FILE \
     -e DISPLAY=$DISPLAY \
     -e LIBGL_ALWAYS_SOFTWARE=1 \
     -e __GLX_VENDOR_LIBRARY_NAME=mesa \

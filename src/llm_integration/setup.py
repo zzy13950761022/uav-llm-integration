@@ -11,15 +11,16 @@ setup(
             ['resource/' + package_name]),
         ('share/' + package_name, ['package.xml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools', 'rclpy', 'requests', 'opencv-python', 'cv_bridge'],
     zip_safe=True,
-    maintainer='pioneer-container',
-    maintainer_email='pioneer-container@todo.todo',
-    description='TODO: Package description',
+    maintainer='Conan Dewitt',
+    maintainer_email='22877792@student.uwa.edu.au',
+    description='Integration of LLM into UAV simulation for motion control.',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            'llm_node = llm_integration.llm_node:main'
         ],
     },
 )

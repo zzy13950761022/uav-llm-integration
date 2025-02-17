@@ -50,6 +50,10 @@ RUN useradd -m pioneer-container && echo "pioneer-container:password" | chpasswd
 USER pioneer-container
 WORKDIR /home/pioneer-container
 
+# Install pip and additional Python packages for LLM integration
+RUN apt-get update && apt-get install -y python3-pip
+RUN pip3 install requests opencv-python
+
 # Create ROS workspace
 RUN mkdir -p ~/uav-llm-integration/src
 

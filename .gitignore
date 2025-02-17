@@ -2,3 +2,4 @@ uli-env/
 build/
 install/
 log/
+.env
