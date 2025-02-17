@@ -16,9 +16,9 @@ setup(
     ],
     install_requires=['setuptools'],
     zip_safe=True,
-    maintainer='Conan Dewitt',
+    maintainer='Conan Po Dewitt',
     maintainer_email='22877792@student.uwa.edu.au',
-    description='Integration of LLM into UAV simulation for motion control.',
+    description='Integration of LLM into UAV for motion control.',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={

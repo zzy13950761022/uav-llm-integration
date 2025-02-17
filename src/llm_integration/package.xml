@@ -3,8 +3,8 @@
 <package format="3">
   <name>llm_integration</name>
   <version>0.0.0</version>
-  <description>TODO: Package description</description>
-  <maintainer email="pioneer-container@todo.todo">pioneer-container</maintainer>
+  <description>Integration of LLM into UAV for motion control.</description>
+  <maintainer email="22877792@student.uwa.edu.au">Conan Po Dewitt</maintainer>
   <license>TODO: License declaration</license>
 
   <depend>rclpy</depend>
