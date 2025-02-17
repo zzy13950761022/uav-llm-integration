@@ -17,7 +17,7 @@ class LLMController(Node):
 
         # Subscribers: camera image and text input
         self.create_subscription(Image, '/camera', self.image_callback, 10)
-        self.create_subscription(String, '/text_input', self.text_callback, 10)
+        self.create_subscription(String, '/text_in', self.text_callback, 10)
 
         # Publisher: movement commands to /cmd_vel
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)

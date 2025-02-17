@@ -1,17 +1,20 @@
-from setuptools import find_packages, setup
+from setuptools import setup
+from glob import glob
+import os
 
 package_name = 'llm_integration'
 
 setup(
     name=package_name,
     version='0.0.0',
-    packages=find_packages(exclude=['test']),
+    packages=[package_name],
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
-        ('share/' + package_name, ['package.xml']),
+        # Install launch files
+        (os.path.join('share', package_name, 'launch'), glob('launch/*.launch.py')),
+        # Install package.xml
+        (os.path.join('share', package_name), ['package.xml']),
     ],
-    install_requires=['setuptools', 'rclpy', 'requests', 'opencv-python', 'cv_bridge'],
+    install_requires=['setuptools'],
     zip_safe=True,
     maintainer='Conan Dewitt',
     maintainer_email='22877792@student.uwa.edu.au',
@@ -20,7 +23,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'llm_node = llm_integration.llm_node:main'
+            'llm_node = llm_integration.llm_node:main',
+            'text_in_node = llm_integration.text_in_node:main',
         ],
     },
 )
