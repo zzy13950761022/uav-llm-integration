@@ -46,7 +46,7 @@ RUN apt-get update && apt-get install -y \
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
 
 # Install pip and additional Python packages for LLM integration
-RUN apt-get update && apt-get install -y python3-pip
+RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages requests opencv-python
 
 # Create new user to run GUI applications
