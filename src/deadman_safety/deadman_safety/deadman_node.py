@@ -1,23 +1,20 @@
 import rclpy
 from rclpy.node import Node
-from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 
 class DeadmanNode(Node):
     def __init__(self):
         super().__init__('deadman_node')
-        # Subscribe to LLM commands
         self.subscription = self.create_subscription(
-            String,
+            Twist,
             '/llm_cmd',
             self.listener_callback,
             10
         )
-        # Publisher to robot command topic
-        self.publisher = self.create_publisher(String, '/cmd_vel', 10)
+        self.publisher = self.create_publisher(Twist, '/cmd_vel', 10)
 
-    def listener_callback(self, msg: String):
-        self.get_logger().info(f"Safety Node received: {msg.data}")
-        # For now, just pass the command through
+    def listener_callback(self, msg: Twist):
+        self.get_logger().info(f"Deadman Node received: linear={msg.linear.x}, angular={msg.angular.z}")
         self.publisher.publish(msg)
 
 def main(args=None):

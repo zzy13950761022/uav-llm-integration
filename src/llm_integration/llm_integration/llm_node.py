@@ -1,9 +1,11 @@
-# llm/llm_node.py
 import os
 import rclpy
 from rclpy.node import Node
 from std_msgs.msg import String
+from geometry_msgs.msg import Twist
 import requests
+import json
+import re
 
 class LLMNode(Node):
     def __init__(self):
@@ -11,7 +13,7 @@ class LLMNode(Node):
         # Subscribe to the text input topic.
         self.text_sub = self.create_subscription(String, '/text_in', self.text_callback, 10)
         # Publisher for LLM command responses (to be forwarded by a safety node)
-        self.cmd_pub = self.create_publisher(String, '/llm_cmd', 10)
+        self.cmd_pub = self.create_publisher(Twist, '/llm_cmd', 10)
         # API parameters
         self.api_key = os.environ.get('LLM_API_KEY')
         self.model = 'gpt-4'
@@ -62,13 +64,32 @@ class LLMNode(Node):
             response_text = result['choices'][0]['message']['content']
             self.get_logger().info(f"LLM API response: {response_text}")
             # Publish the response to /llm_cmd (safety node will later filter before going to /cmd_vel)
-            msg = String()
-            msg.data = response_text
-            self.cmd_pub.publish(msg)
-            return True
+            twist_cmd = self.parse_response(response_text)
+            if twist_cmd:
+                self.cmd_pub.publish(twist_cmd)
+                return True
+            else:
+                return False
         except Exception as e:
             self.get_logger().error(f"LLM API call failed: {e}")
             return False
+        
+    def parse_response(self, response_text: str):
+        """Parses the JSON response from the LLM and converts it to a Twist message."""
+        try:
+            # Extract the JSON substring (handles cases where extra text is returned)
+            json_regex = re.compile(r'\{.*\}', re.DOTALL)
+            match = json_regex.search(response_text)
+            json_str = match.group(0) if match else response_text  # Use full text if regex fails
+            
+            # Parse JSON
+            command = json.loads(json_str)
+            twist = Twist()
+            twist.linear.x = float(command.get("linear", 0.0))
+            twist.angular.z = float(command.get("angular", 0.0))
+            return twist
+        except Exception as e:
+            self.get_logger()
 
 def main(args=None):
     rclpy.init(args=args)
