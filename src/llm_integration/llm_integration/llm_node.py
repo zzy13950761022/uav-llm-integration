@@ -51,7 +51,8 @@ class LLMNode(Node):
         }
         # Construct a prompt using only the user text input.
         prompt = f"User command: {user_text}\nRespond with a JSON object in the following format: " \
-                 "{\"linear\": <value in m/s>, \"angular\": <value in rad/s>}."
+                 "{\"linear\": <value in m/s>, \"angular\": <value in rad/s>}." \
+                 "Maximum value for linear is 0.5 m/s."
         data = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],

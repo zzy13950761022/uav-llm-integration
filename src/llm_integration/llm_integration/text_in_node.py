@@ -11,6 +11,7 @@ class TextInputGUI(Node):
         self.root.title("LLM Command Input")
         self.entry = tk.Entry(self.root, width=50)
         self.entry.pack(padx=20, pady=10)
+        self.entry.bind('<Return>', lambda event: self.send_command())
         self.button = tk.Button(self.root, text="Send Command", command=self.send_command)
         self.button.pack(padx=20, pady=10)
         self.root.protocol("WM_DELETE_WINDOW", self.on_shutdown)
