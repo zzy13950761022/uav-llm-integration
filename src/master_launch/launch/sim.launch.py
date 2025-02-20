@@ -13,11 +13,18 @@ def generate_launch_description():
     llm_integration_share = get_package_share_directory('llm_integration')
     llm_integration_launch = os.path.join(llm_integration_share, 'launch', 'llm_integration.launch.py')
     
+    # Locate the deadman_node package's launch file
+    deadman_safety_share = get_package_share_directory('deadman_safety')
+    deadman_safety_launch = os.path.join(deadman_safety_share, 'launch', 'deadman.launch.py')
+    
     return LaunchDescription([
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(uav_sim_launch)
         ),
         IncludeLaunchDescription(
             PythonLaunchDescriptionSource(llm_integration_launch)
+        ),
+        IncludeLaunchDescription(
+            PythonLaunchDescriptionSource(deadman_safety_launch)
         )
     ])

@@ -2,7 +2,7 @@ from setuptools import setup
 from glob import glob
 import os
 
-package_name = 'llm_integration'
+package_name = 'deadman_safety'
 
 setup(
     name=package_name,
@@ -20,13 +20,12 @@ setup(
     zip_safe=True,
     maintainer='Conan Po Dewitt',
     maintainer_email='22877792@student.uwa.edu.au',
-    description='Integration of LLM into UAV for motion control',
+    description='Safety node for LLM integration',
     license='TODO: License declaration',
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'llm_node = llm_integration.llm_node:main',
-            'text_in_node = llm_integration.text_in_node:main',
+            'deadman_node = deadman_safety.deadman_node:main',
         ],
     },
 )

@@ -42,15 +42,20 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-rviz2 \
     && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables
-RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
-
 # Install pip and additional Python packages for LLM integration
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages requests opencv-python
 
+# Set environment variables globally
+RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
+
 # Create new user to run GUI applications
 RUN useradd -m pioneer-container && echo "pioneer-container:password" | chpasswd && adduser pioneer-container sudo
+
+# Prepopulate a command in the new user's .bashrc
+RUN echo 'echo "Press up to view launch command"; history -s "ros2 launch master_launch "' >> /home/pioneer-container/.bashrc
+
+# Switch to the new user
 USER pioneer-container
 WORKDIR /home/pioneer-container
 
@@ -63,7 +68,7 @@ COPY --chown=pioneer-container:pioneer-container src/ /home/pioneer-container/ua
 # Build ROS workspace
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration && colcon build"
 
-# Source workspace in .bashrc
+# Source workspace in .bashrc for the user
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
 # Set simulation environment variables

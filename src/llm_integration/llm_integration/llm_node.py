@@ -1,127 +1,79 @@
+# llm/llm_node.py
+import os
 import rclpy
 from rclpy.node import Node
-from sensor_msgs.msg import Image
 from std_msgs.msg import String
-from geometry_msgs.msg import Twist
-import cv2
-from cv_bridge import CvBridge
 import requests
-import json
-import base64
-import os
 
-class LLMController(Node):
+class LLMNode(Node):
     def __init__(self):
-        super().__init__('llm_controller')
-        self.bridge = CvBridge()
-
-        # Subscribers: camera image and text input
-        self.create_subscription(Image, '/camera', self.image_callback, 10)
-        self.create_subscription(String, '/text_in', self.text_callback, 10)
-
-        # Publisher: movement commands to /cmd_vel
-        self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-
-        # Parameters for LLM API
+        super().__init__('llm_node')
+        # Subscribe to the text input topic.
+        self.text_sub = self.create_subscription(String, '/text_in', self.text_callback, 10)
+        # Publisher for LLM command responses (to be forwarded by a safety node)
+        self.cmd_pub = self.create_publisher(String, '/llm_cmd', 10)
+        # API parameters
         self.api_key = os.environ.get('LLM_API_KEY')
         self.model = 'gpt-4'
-
-        # Hold the latest inputs
-        self.latest_text_input = "start"  # default command if nothing is provided
-        self.latest_image = None
+        # Configurable API ping interval (in seconds)
+        self.api_interval = 10.0
+        self.last_api_time = 0.0
+        self.latest_text = ""
+        # Create a timer that checks periodically (every second)
+        self.api_timer = self.create_timer(1.0, self.timer_callback)
 
     def text_callback(self, msg: String):
-        self.latest_text_input = msg.data
-        self.get_logger().info(f"Received text input: {self.latest_text_input}")
+        # Update the latest text received.
+        self.latest_text = msg.data
+        self.get_logger().info(f"Received text input: {self.latest_text}")
 
-    def image_callback(self, msg: Image):
-        self.latest_image = msg
-        self.get_logger().info("Received new camera image")
-        self.process_inputs()
+    def timer_callback(self):
+        # Get current time (in seconds)
+        current_time = self.get_clock().now().nanoseconds / 1e9
+        # If sufficient time has passed since the last successful API call and there is input:
+        if self.latest_text and (current_time - self.last_api_time >= self.api_interval):
+            self.get_logger().info("Attempting to ping LLM API...")
+            success = self.call_api(self.latest_text)
+            if success:
+                # On a successful call, reset the timer.
+                self.last_api_time = current_time
+            else:
+                # On failure, log and try again immediately (timer will fire in 1 second).
+                self.get_logger().warn("LLM API call failed; will try again immediately.")
 
-    def process_inputs(self):
-        if self.latest_image is None:
-            self.get_logger().warning("No image available yet!")
-            return
-
-        # Convert ROS image message to OpenCV image
-        try:
-            cv_image = self.bridge.imgmsg_to_cv2(self.latest_image, desired_encoding='bgr8')
-        except Exception as e:
-            self.get_logger().error(f"CV Bridge conversion failed: {e}")
-            return
-
-        # Convert to a base64 string:
-        retval, buffer = cv2.imencode('.jpg', cv_image)
-        image_base64 = base64.b64encode(buffer).decode('utf-8')
-
-        # Construct JSON payload for LLM API
-        payload = {
-            "user_command": self.latest_text_input,
-            "image_description": image_base64
-        }
-
-        self.get_logger().info(f"Payload for LLM: {json.dumps(payload)}")
-        response_text = self.call_chatgpt_api(payload)
-        self.get_logger().info(f"LLM response: {response_text}")
-
-        # Parse the JSON response from ChatGPT
-        twist_cmd = self.parse_response(response_text)
-        if twist_cmd:
-            self.cmd_pub.publish(twist_cmd)
-            self.get_logger().info("Published movement command.")
-        else:
-            self.get_logger().error("Failed to parse movement command from LLM response.")
-
-    def call_chatgpt_api(self, payload: dict) -> str:
+    def call_api(self, user_text: str) -> bool:
         url = "https://api.openai.com/v1/chat/completions"
         headers = {
             "Content-Type": "application/json",
             "Authorization": f"Bearer {self.api_key}"
         }
-        # Construct a message instructing LLM to respond in JSON:
-        message_content = (
-            f"User command: {payload['user_command']}\n"
-            f"Camera view description: {payload['image_description']}\n"
-            "Respond with a JSON object in the following format: "
-            '{"linear": <linear_velocity in m/s>, "angular": <angular_velocity in rad/s>}.'
-        )
-
+        # Construct a prompt using only the user text input.
+        prompt = f"User command: {user_text}\nRespond with a JSON object in the following format: " \
+                 "{\"linear\": <value in m/s>, \"angular\": <value in rad/s>}."
         data = {
             "model": self.model,
-            "messages": [{"role": "user", "content": message_content}],
+            "messages": [{"role": "user", "content": prompt}],
             "temperature": 0.7
         }
         try:
             response = requests.post(url, headers=headers, json=data)
             response.raise_for_status()
             result = response.json()
-            return result['choices'][0]['message']['content']
+            response_text = result['choices'][0]['message']['content']
+            self.get_logger().info(f"LLM API response: {response_text}")
+            # Publish the response to /llm_cmd (safety node will later filter before going to /cmd_vel)
+            msg = String()
+            msg.data = response_text
+            self.cmd_pub.publish(msg)
+            return True
         except Exception as e:
             self.get_logger().error(f"LLM API call failed: {e}")
-            return ""
-
-    def parse_response(self, response_text: str):
-        # Attempt to parse the response text as JSON.
-        try:
-            # If LLM returns additional text, might need to extract the JSON substring.
-            # For now, assume it returns a clean JSON string.
-            command = json.loads(response_text)
-            twist = Twist()
-            twist.linear.x = float(command.get("linear", 0.0))
-            twist.angular.z = float(command.get("angular", 0.0))
-            return twist
-        except Exception as e:
-            self.get_logger().error(f"Error parsing response JSON: {e}")
-            return None
+            return False
 
 def main(args=None):
     rclpy.init(args=args)
-    node = LLMController()
-    try:
-        rclpy.spin(node)
-    except KeyboardInterrupt:
-        pass
+    node = LLMNode()
+    rclpy.spin(node)
     node.destroy_node()
     rclpy.shutdown()
 
