@@ -17,12 +17,21 @@ class DeadmanNode(Node):
         self.get_logger().info(f"Deadman Node received: linear={msg.linear.x}, angular={msg.angular.z}")
         self.publisher.publish(msg)
 
+    def on_shutdown(self):
+        if rclpy.ok():
+            self.get_logger().info(f"Shutting down {self.get_name()}...")
+        self.destroy_node()
+
 def main(args=None):
     rclpy.init(args=args)
     node = DeadmanNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        node.on_shutdown()
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

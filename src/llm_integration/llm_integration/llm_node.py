@@ -90,13 +90,22 @@ class LLMNode(Node):
             return twist
         except Exception as e:
             self.get_logger()
+    
+    def on_shutdown(self):
+        if rclpy.ok():
+            self.get_logger().info(f"Shutting down {self.get_name()}...")
+        self.destroy_node()
 
 def main(args=None):
     rclpy.init(args=args)
     node = LLMNode()
-    rclpy.spin(node)
-    node.destroy_node()
-    rclpy.shutdown()
+    try:
+        rclpy.spin(node)
+    except KeyboardInterrupt:
+        node.on_shutdown()
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()

@@ -13,7 +13,7 @@ class TextInputGUI(Node):
         self.entry.pack(padx=20, pady=10)
         self.button = tk.Button(self.root, text="Send Command", command=self.send_command)
         self.button.pack(padx=20, pady=10)
-        self.root.protocol("WM_DELETE_WINDOW", self.on_closing)
+        self.root.protocol("WM_DELETE_WINDOW", self.on_shutdown)
 
     def send_command(self):
         command = self.entry.get()
@@ -23,13 +23,19 @@ class TextInputGUI(Node):
         self.get_logger().info(f"Published command: {command}")
         self.entry.delete(0, tk.END)
 
-    def on_closing(self):
-        self.root.quit()
+    def on_shutdown(self):
+        if rclpy.ok():
+            self.get_logger().info(f"Shutting down {self.get_name()}...")
+        self.destroy_node()
+        self.root.quit()  # Quit Tkinter event loop
 
     def spin(self):
-        while rclpy.ok():
-            self.root.update()
-            rclpy.spin_once(self, timeout_sec=0.1)
+        try:
+            while rclpy.ok():
+                self.root.update()
+                rclpy.spin_once(self, timeout_sec=0.1)
+        except KeyboardInterrupt:
+            self.on_shutdown()
 
 def main(args=None):
     rclpy.init(args=args)
@@ -37,9 +43,10 @@ def main(args=None):
     try:
         node.spin()
     except KeyboardInterrupt:
-        pass
-    node.destroy_node()
-    rclpy.shutdown()
+        node.on_shutdown()
+    finally:
+        if rclpy.ok():
+            rclpy.shutdown()
 
 if __name__ == '__main__':
     main()
