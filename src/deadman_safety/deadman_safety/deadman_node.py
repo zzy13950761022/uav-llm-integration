@@ -8,7 +8,7 @@ import json
 class DeadmanNode(Node):
     def __init__(self):
         super().__init__('deadman_node')
-        # Publisher: final command to UAV
+        # Publisher to output final command to UAV
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         
         # Subscribers:
@@ -24,6 +24,11 @@ class DeadmanNode(Node):
         self.joy_state = {}   # Will store parsed JSON from custom joy node.
         self.latest_llm_cmd = Twist()  # Fallback command.
         
+        # **State tracking for reduced log spam**
+        self.previous_deadman_state = None
+        self.previous_command_active = None
+        self.previous_safety_state = None
+        
         # Timer: publishes final command at 10 Hz.
         self.timer = self.create_timer(0.1, self.publish_command)
 
@@ -31,8 +36,15 @@ class DeadmanNode(Node):
         try:
             min_distance = min(msg.ranges)
             self.too_close = min_distance < self.safety_distance
-            if self.too_close:
-                self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
+            
+            # **Log only if safety state changes**
+            if self.too_close != self.previous_safety_state:
+                if self.too_close:
+                    self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
+                else:
+                    self.get_logger().info("Obstacle cleared, resuming movement.")
+                self.previous_safety_state = self.too_close
+            
         except Exception as e:
             self.get_logger().error(f"Lidar error: {e}")
 
@@ -51,7 +63,6 @@ class DeadmanNode(Node):
         # Safety override: if obstacle is too close, always stop.
         if self.too_close:
             self.cmd_pub.publish(final_cmd)
-            self.get_logger().info("Safety stop: Obstacle too close.")
             return
 
         # Check deadman switch using custom joy node JSON.
@@ -59,9 +70,16 @@ class DeadmanNode(Node):
         buttons = self.joy_state.get("buttons", {})
         deadman_pressed = (buttons.get("KEY_310", 0) == 1 and buttons.get("KEY_311", 0) == 1)
 
+        # **Log only if deadman state changes**
+        if deadman_pressed != self.previous_deadman_state:
+            if deadman_pressed:
+                self.get_logger().info("Deadman switch engaged.")
+            else:
+                self.get_logger().info("Deadman switch not engaged. Stopping UAV.")
+            self.previous_deadman_state = deadman_pressed  # Update state tracking
+
         if not deadman_pressed:
             self.cmd_pub.publish(final_cmd)
-            self.get_logger().info("Deadman switch not engaged. Stopping UAV.")
             return
 
         # If deadman is engaged, read axis values.
@@ -80,13 +98,22 @@ class DeadmanNode(Node):
         computed_cmd.linear.x = -linear_input * scaling_factor_linear  # Invert as needed.
         computed_cmd.angular.z = angular_input * scaling_factor_angular
 
+        # **Check if joystick is active**
+        command_active = abs(computed_cmd.linear.x) > 0.01 or abs(computed_cmd.angular.z) > 0.01
+
+        # **Log only if movement state changes**
+        if command_active != self.previous_command_active:
+            if command_active:
+                self.get_logger().info("Publishing UAV command from joystick input.")
+            else:
+                self.get_logger().info("No joystick input detected; using LLM command.")
+            self.previous_command_active = command_active  # Update state tracking
+
         # If joystick axis command is essentially zero, fallback to LLM command.
-        if abs(computed_cmd.linear.x) < 0.01 and abs(computed_cmd.angular.z) < 0.01:
-            final_cmd = self.latest_llm_cmd
-            self.get_logger().info("No joystick movement; using LLM command.")
-        else:
+        if command_active:
             final_cmd = computed_cmd
-            self.get_logger().info("Publishing UAV command from joystick input.")
+        else:
+            final_cmd = self.latest_llm_cmd
 
         self.cmd_pub.publish(final_cmd)
 
