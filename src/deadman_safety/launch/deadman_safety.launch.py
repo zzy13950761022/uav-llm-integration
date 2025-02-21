@@ -9,4 +9,12 @@ def generate_launch_description():
         name='deadman_node',
         output='screen'
     )
-    return LaunchDescription([deadman_node])
+
+    custom_joy_node = Node(
+        package='deadman_safety',
+        executable='custom_joy_node',
+        name='custom_joy_node',
+        output='screen'
+    )
+
+    return LaunchDescription([deadman_node, custom_joy_node])

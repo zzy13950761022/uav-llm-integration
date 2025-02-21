@@ -2,59 +2,93 @@ import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
 from sensor_msgs.msg import LaserScan
+from std_msgs.msg import String
+import json
 
 class DeadmanNode(Node):
     def __init__(self):
         super().__init__('deadman_node')
-        # Subscribe to LLM commands (Twist messages)
-        self.llm_sub = self.create_subscription(
-            Twist,
-            '/llm_cmd',
-            self.cmd_callback,
-            10
-        )
-        # Subscribe to LiDAR sensor data
-        self.lidar_sub = self.create_subscription(
-            LaserScan,
-            '/lidar',
-            self.lidar_callback,
-            10
-        )
-        # Publisher to send final movement commands
+        # Publisher: final command to UAV
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
-
-        # Define minimum safety distance (in meters)
-        self.safety_distance = 0.5
-        # Flag indicating whether an obstacle is too close
+        
+        # Subscribers:
+        self.lidar_sub = self.create_subscription(LaserScan, '/lidar', self.lidar_callback, 10)
+        self.custom_joy_sub = self.create_subscription(String, '/custom_joy_cmd', self.joy_callback, 10)
+        self.llm_sub = self.create_subscription(Twist, '/llm_cmd', self.llm_callback, 10)
+        
+        # Safety state (from LiDAR)
         self.too_close = False
-
-        # Timer to continuously check and publish stop commands if needed (every 0.2 seconds)
-        self.stop_timer = self.create_timer(0.2, self.publish_stop_if_necessary)
+        self.safety_distance = 0.5  # meters
+        
+        # Latest messages from custom joy node and LLM
+        self.joy_state = {}   # Will store parsed JSON from custom joy node.
+        self.latest_llm_cmd = Twist()  # Fallback command.
+        
+        # Timer: publishes final command at 10 Hz.
+        self.timer = self.create_timer(0.1, self.publish_command)
 
     def lidar_callback(self, msg: LaserScan):
-        # Check the minimum range from the LiDAR scan data
-        min_distance = min(msg.ranges)
-        if min_distance < self.safety_distance:
-            self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
-            self.too_close = True
-        else:
-            self.too_close = False
+        try:
+            min_distance = min(msg.ranges)
+            self.too_close = min_distance < self.safety_distance
+            if self.too_close:
+                self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
+        except Exception as e:
+            self.get_logger().error(f"Lidar error: {e}")
 
-    def cmd_callback(self, msg: Twist):
-        # If an obstacle is too close, ignore the LLM command and publish a stop command.
-        if self.too_close:
-            stop_msg = Twist()  # All velocities zero
-            self.cmd_pub.publish(stop_msg)
-            self.get_logger().info("LLM command overridden: Obstacle detected, stopping UAV!")
-        else:
-            self.cmd_pub.publish(msg)
+    def joy_callback(self, msg: String):
+        try:
+            self.joy_state = json.loads(msg.data)
+        except Exception as e:
+            self.get_logger().error(f"JSON parse error in joy_callback: {e}")
 
-    def publish_stop_if_necessary(self):
-        # This timer callback continuously publishes a stop command if an obstacle is too close.
+    def llm_callback(self, msg: Twist):
+        self.latest_llm_cmd = msg
+
+    def publish_command(self):
+        final_cmd = Twist()  # Default command: stop.
+
+        # Safety override: if obstacle is too close, always stop.
         if self.too_close:
-            stop_msg = Twist()  # Zero velocities
-            self.cmd_pub.publish(stop_msg)
-            self.get_logger().info("Publishing periodic stop command due to obstacle.")
+            self.cmd_pub.publish(final_cmd)
+            self.get_logger().info("Safety stop: Obstacle too close.")
+            return
+
+        # Check deadman switch using custom joy node JSON.
+        # For the PS4 controller, L1 and R1 are detected as KEY_310 and KEY_311.
+        buttons = self.joy_state.get("buttons", {})
+        deadman_pressed = (buttons.get("KEY_310", 0) == 1 and buttons.get("KEY_311", 0) == 1)
+
+        if not deadman_pressed:
+            self.cmd_pub.publish(final_cmd)
+            self.get_logger().info("Deadman switch not engaged. Stopping UAV.")
+            return
+
+        # If deadman is engaged, read axis values.
+        axes = self.joy_state.get("axes", {})
+        # Adjust these axis names if needed. Here we assume:
+        #   - ABS_Y controls forward/backward (invert if necessary)
+        #   - ABS_X controls rotation.
+        scaling_factor_linear = 2.0    # Increase for more responsiveness.
+        scaling_factor_angular = 1.5   # Increase for more sensitivity.
+
+        linear_input = axes.get("ABS_Y", 0.0)
+        angular_input = axes.get("ABS_X", 0.0)
+
+        # Compute joystick command from axis values.
+        computed_cmd = Twist()
+        computed_cmd.linear.x = -linear_input * scaling_factor_linear  # Invert as needed.
+        computed_cmd.angular.z = angular_input * scaling_factor_angular
+
+        # If joystick axis command is essentially zero, fallback to LLM command.
+        if abs(computed_cmd.linear.x) < 0.01 and abs(computed_cmd.angular.z) < 0.01:
+            final_cmd = self.latest_llm_cmd
+            self.get_logger().info("No joystick movement; using LLM command.")
+        else:
+            final_cmd = computed_cmd
+            self.get_logger().info("Publishing UAV command from joystick input.")
+
+        self.cmd_pub.publish(final_cmd)
 
     def on_shutdown(self):
         if rclpy.ok():

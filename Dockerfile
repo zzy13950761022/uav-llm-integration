@@ -40,11 +40,13 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-joint-state-publisher \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-rviz2 \
+    ros-jazzy-joy \
+    ros-jazzy-joy-linux \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pip and additional Python packages for LLM integration
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
-RUN pip3 install --break-system-packages requests opencv-python
+RUN pip3 install --break-system-packages requests evdev
 
 # Set environment variables globally
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc

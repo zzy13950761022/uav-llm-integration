@@ -15,7 +15,7 @@ def generate_launch_description():
     
     # Locate the deadman_node package's launch file
     deadman_safety_share = get_package_share_directory('deadman_safety')
-    deadman_safety_launch = os.path.join(deadman_safety_share, 'launch', 'deadman.launch.py')
+    deadman_safety_launch = os.path.join(deadman_safety_share, 'launch', 'deadman_safety.launch.py')
     
     return LaunchDescription([
         IncludeLaunchDescription(
