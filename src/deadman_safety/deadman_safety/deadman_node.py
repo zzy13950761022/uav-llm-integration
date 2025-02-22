@@ -8,43 +8,36 @@ import json
 class DeadmanNode(Node):
     def __init__(self):
         super().__init__('deadman_node')
-        # Publisher to output final command to UAV
         self.cmd_pub = self.create_publisher(Twist, '/cmd_vel', 10)
         
-        # Subscribers:
         self.lidar_sub = self.create_subscription(LaserScan, '/lidar', self.lidar_callback, 10)
         self.custom_joy_sub = self.create_subscription(String, '/custom_joy_cmd', self.joy_callback, 10)
         self.llm_sub = self.create_subscription(Twist, '/llm_cmd', self.llm_callback, 10)
         
-        # Safety state (from LiDAR)
         self.too_close = False
         self.safety_distance = 0.5  # meters
         
-        # Latest messages from custom joy node and LLM
-        self.joy_state = {}   # Will store parsed JSON from custom joy node.
-        self.latest_llm_cmd = Twist()  # Fallback command.
+        self.joy_state = {}          # Will store JSON parsed from custom joy node (only buttons)
+        self.latest_llm_cmd = Twist()  # Fallback command
         
-        # **State tracking for reduced log spam**
+        # State tracking for logging changes once.
         self.previous_deadman_state = None
         self.previous_command_active = None
         self.previous_safety_state = None
         
-        # Timer: publishes final command at 10 Hz.
+        # Timer to publish command at 10 Hz.
         self.timer = self.create_timer(0.1, self.publish_command)
 
     def lidar_callback(self, msg: LaserScan):
         try:
             min_distance = min(msg.ranges)
             self.too_close = min_distance < self.safety_distance
-            
-            # **Log only if safety state changes**
             if self.too_close != self.previous_safety_state:
                 if self.too_close:
                     self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
                 else:
                     self.get_logger().info("Obstacle cleared, resuming movement.")
                 self.previous_safety_state = self.too_close
-            
         except Exception as e:
             self.get_logger().error(f"Lidar error: {e}")
 
@@ -58,60 +51,65 @@ class DeadmanNode(Node):
         self.latest_llm_cmd = msg
 
     def publish_command(self):
-        final_cmd = Twist()  # Default command: stop.
+        final_cmd = Twist()  # Default command: stop
 
-        # Safety override: if obstacle is too close, always stop.
+        # 1. Safety override: if an obstacle is too close, always stop.
         if self.too_close:
             self.cmd_pub.publish(final_cmd)
             return
 
-        # Check deadman switch using custom joy node JSON.
-        # For the PS4 controller, L1 and R1 are detected as KEY_310 and KEY_311.
+        # 2. Check deadman switch using custom joy node JSON.
+        # For the PS4 controller, we expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
         buttons = self.joy_state.get("buttons", {})
         deadman_pressed = (buttons.get("KEY_310", 0) == 1 and buttons.get("KEY_311", 0) == 1)
 
-        # **Log only if deadman state changes**
         if deadman_pressed != self.previous_deadman_state:
             if deadman_pressed:
                 self.get_logger().info("Deadman switch engaged.")
             else:
                 self.get_logger().info("Deadman switch not engaged. Stopping UAV.")
-            self.previous_deadman_state = deadman_pressed  # Update state tracking
+            self.previous_deadman_state = deadman_pressed
 
         if not deadman_pressed:
             self.cmd_pub.publish(final_cmd)
             return
 
-        # If deadman is engaged, read axis values.
-        axes = self.joy_state.get("axes", {})
-        # Adjust these axis names if needed. Here we assume:
-        #   - ABS_Y controls forward/backward (invert if necessary)
-        #   - ABS_X controls rotation.
-        scaling_factor_linear = 2.0    # Increase for more responsiveness.
-        scaling_factor_angular = 1.5   # Increase for more sensitivity.
+        # 3. Determine directional command from buttons.
+        # Mapping:
+        #   - KEY_307: forward → +0.5 m/s
+        #   - KEY_304: reverse → -0.5 m/s
+        #   - KEY_308: left    → +0.5 rad/s (turn left)
+        #   - KEY_305: right   → -0.5 rad/s (turn right)
+        FORWARD_SPEED = 0.5
+        REVERSE_SPEED = -0.5
+        TURN_LEFT_SPEED = 0.5
+        TURN_RIGHT_SPEED = -0.5
 
-        linear_input = axes.get("ABS_Y", 0.0)
-        angular_input = axes.get("ABS_X", 0.0)
+        linear_speed = 0.0
+        angular_speed = 0.0
 
-        # Compute joystick command from axis values.
-        computed_cmd = Twist()
-        computed_cmd.linear.x = -linear_input * scaling_factor_linear  # Invert as needed.
-        computed_cmd.angular.z = angular_input * scaling_factor_angular
+        if buttons.get("KEY_307", 0) == 1:
+            linear_speed += FORWARD_SPEED
+        if buttons.get("KEY_304", 0) == 1:
+            linear_speed += REVERSE_SPEED
+        if buttons.get("KEY_308", 0) == 1:
+            angular_speed += TURN_LEFT_SPEED
+        if buttons.get("KEY_305", 0) == 1:
+            angular_speed += TURN_RIGHT_SPEED
 
-        # **Check if joystick is active**
-        command_active = abs(computed_cmd.linear.x) > 0.01 or abs(computed_cmd.angular.z) > 0.01
+        # 4. If any directional button is pressed, use that command.
+        command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
 
-        # **Log only if movement state changes**
         if command_active != self.previous_command_active:
             if command_active:
-                self.get_logger().info("Publishing UAV command from joystick input.")
+                self.get_logger().info("Publishing UAV command from joystick buttons.")
             else:
-                self.get_logger().info("No joystick input detected; using LLM command.")
-            self.previous_command_active = command_active  # Update state tracking
+                self.get_logger().info("No joystick button input; using LLM command.")
+            self.previous_command_active = command_active
 
-        # If joystick axis command is essentially zero, fallback to LLM command.
         if command_active:
-            final_cmd = computed_cmd
+            final_cmd.linear.x = linear_speed
+            final_cmd.angular.z = angular_speed
         else:
             final_cmd = self.latest_llm_cmd
 
