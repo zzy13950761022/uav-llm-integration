@@ -1,9 +1,21 @@
 #!/bin/bash
 
-# Define the image name
+# Define variables
 IMAGE_NAME="uav-llm-integration"
 CONTAINER_NAME="uav-llm-integration-container"
 ENV_FILE=".env"
+
+# Check if the .env file exists
+if [ ! -f "$ENV_FILE" ]; then
+    echo "Error: .env file not found! Aborting."
+    exit 1
+fi
+
+# Check if a joystick is detected
+if [ ! -e "/dev/input/js0" ]; then
+    echo "Error: No joystick detected! Please connect a controller before launching."
+    exit 1
+fi
 
 # Remove any existing container with the same name
 if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
