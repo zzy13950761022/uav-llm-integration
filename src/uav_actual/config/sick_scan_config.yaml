@@ -1,0 +1,10 @@
+sick_scan_xd:
+  ros__parameters:
+    scanner_type: "sick_tim551_2050001"  # Adjust based on actual LiDAR model
+    hostname: ""  # Leave empty for USB, otherwise set IP address
+    port: 2112  # Default for Ethernet-based SICK scanners
+    frame_id: "laser_frame"
+    publish_intensity: true
+    min_ang: -1.57  # -90 degrees
+    max_ang: 1.57  # 90 degrees
+    range_max: 25.0  # Adjust based on LiDAR specs

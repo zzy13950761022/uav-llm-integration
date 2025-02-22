@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.8)
-project(uav_sim)
+project(uav_actual)
 
 if(CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   add_compile_options(-Wall -Wextra -Wpedantic)
@@ -22,8 +22,8 @@ endif()
 
 ament_package()
 
-# Install dependencies
+# Install the launch files
 install(
-  DIRECTORY config launch meshes models worlds
+  DIRECTORY config launch meshes models
   DESTINATION share/${PROJECT_NAME}
 )
