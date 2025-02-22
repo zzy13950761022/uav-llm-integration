@@ -12,27 +12,9 @@ def generate_launch_description():
     # Start the SICK LiDAR driver
     sick_scan = Node(
         package='sick_scan_xd',
-        executable='sick_scan_xd_node',
+        executable='sick_generic_caller',
         name='sick_scan_xd',
         parameters=[os.path.join(config_path, 'sick_scan_config.yaml')],
-        output='screen'
-    )
-
-    # Start the Phidget IMU driver
-    phidget_imu = Node(
-        package='phidget_spatial',
-        executable='phidget_spatial_node',
-        name='phidget_spatial',
-        parameters=[os.path.join(config_path, 'phidget_spatial_config.yaml')],
-        output='screen'
-    )
-
-    # Start the Luxonis DepthAI camera node
-    depthai_cam = Node(
-        package='luxonis_depth_ai',
-        executable='depthai_node',
-        name='depthai_camera',
-        parameters=[os.path.join(config_path, 'depthai_config.yaml')],
         output='screen'
     )
 
