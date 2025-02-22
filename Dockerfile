@@ -40,9 +40,9 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-joint-state-publisher \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-rviz2 \
-    ros-jazzy-sick_scan_xd \
-    ros-jazzy-phidget_spatial \
-    ros-jazzy-luxonis_depth_ai \
+    ros-jazzy-sick-scan-xd \
+    ros-jazzy-phidget-spatial \
+    ros-jazzy-luxonis-depth-ai \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pip and additional Python packages for LLM integration
