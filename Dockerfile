@@ -50,14 +50,14 @@ RUN pip3 install --break-system-packages requests evdev
 # Install dependencies for building AriaCoda
 RUN apt-get update && apt-get install -y git make g++ doxygen && rm -rf /var/lib/apt/lists/*
 
-# Clone and build AriaCoda from the alternative repository
+# Clone and build AriaCoda
 RUN git clone https://github.com/reedhedges/AriaCoda.git /opt/AriaCoda && \
     cd /opt/AriaCoda && \
     make -j6 && \
     sudo make install && \
     ldconfig
 
-# Optionally, update the library path so that ROS nodes can find libAria.so
+# Ensure the library path is recognized
 RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib' >> /etc/bash.bashrc
 
 # Set environment variables globally
