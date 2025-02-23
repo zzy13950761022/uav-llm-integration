@@ -9,30 +9,7 @@ def generate_launch_description():
     config_path = os.path.join(pkg_uav_actual, 'config')
     models_path = os.path.join(pkg_uav_actual, 'models')
     
-    # # Launch the SICK LiDAR node
-    # sick_scan_node = Node(
-    #     package='sick_scan_xd',
-    #     executable='sick_scan_xd_node',
-    #     name='sick_scan_xd',
-    #     parameters=[os.path.join(config_path, 'sick_scan_config.yaml')],
-    #     output='screen'
-    # )
-    
-    # Launch the Pioneer driver node (ARIA-based) with a delay
-    aria_node = TimerAction(
-        period=2.0,
-        actions=[
-            Node(
-                package='uav_actual',
-                executable='ariaNode',
-                name='ariaNode',
-                output='screen',
-                arguments=['-rp', '/dev/ttyUSB0']  # Passing the required serial port argument
-            )
-        ]
-    )
-    
-    # Launch robot_state_publisher using the actual Pioneer URDF
+    # Launch robot_state_publisher after a 2-second delay
     robot_state_publisher = TimerAction(
         period=2.0,
         actions=[
@@ -40,13 +17,29 @@ def generate_launch_description():
                 package='robot_state_publisher',
                 executable='robot_state_publisher',
                 name='robot_state_publisher',
-                parameters=[{'robot_description': open(os.path.join(models_path, 'pioneer.urdf')).read()}],
+                parameters=[{
+                    'robot_description': open(os.path.join(models_path, 'pioneer.urdf')).read()
+                }],
+                output='screen'
+            )
+        ]
+    )
+
+    # Launch joint_state_publisher after a 3-second delay
+    joint_state_publisher = TimerAction(
+        period=3.0,
+        actions=[
+            Node(
+                package='joint_state_publisher',
+                executable='joint_state_publisher',
+                name='joint_state_publisher',
+                parameters=[{'use_sim_time': False}],
                 output='screen'
             )
         ]
     )
     
-    # Launch RViz for visualization
+    # Launch RViz after a 5-second delay to allow time for TF publishers to populate the cache
     rviz_node = TimerAction(
         period=5.0,
         actions=[
@@ -60,10 +53,24 @@ def generate_launch_description():
             )
         ]
     )
+
+    # Launch the Pioneer driver node (ARIA-based)
+    aria_node = TimerAction(
+        period=5.0,
+        actions=[
+            Node(
+                package='uav_actual',
+                executable='ariaNode',
+                name='ariaNode',
+                output='screen',
+                arguments=['-rp', '/dev/ttyUSB0']  # Passing the required serial port argument
+            )
+        ]
+    )
     
     return LaunchDescription([
-        # sick_scan_node,
-        aria_node,
         robot_state_publisher,
-        rviz_node
+        joint_state_publisher,
+        rviz_node,
+        aria_node,
     ])

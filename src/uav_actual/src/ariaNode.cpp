@@ -4,6 +4,9 @@
 *
 *   Author: Kieran Quirke-Brown
 *   Date: 12/01/2024
+*
+*   Modified: Conan Po Dewitt
+*   Date: 23/02/2025
 */
 
 #include <chrono>
@@ -60,7 +63,7 @@ int main(int argc, char** argv) {
 
     signal(SIGINT, my_handler);
 
-    // ✅ Corrected logging
+    // Corrected logging
     RCLCPP_DEBUG(rclcpp::get_logger("aria_node"), "Trying to connect to robot...");
 
     if (!robotConnector.connectRobot()) {

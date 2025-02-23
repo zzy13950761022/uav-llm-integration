@@ -93,7 +93,7 @@ def generate_launch_description():
         ]
     )
     
-    # Launch joint_state_publisher after a 2-second delay
+    # Launch joint_state_publisher after a 3-second delay
     joint_state_publisher = TimerAction(
         period=3.0,
         actions=[
@@ -108,7 +108,7 @@ def generate_launch_description():
     )
     
     # Launch the ROS–Gazebo bridge after a 2-second delay
-    bridge = TimerAction(
+    bridge_node = TimerAction(
         period=3.0,
         actions=[
             Node(
@@ -135,7 +135,7 @@ def generate_launch_description():
     )
     
     # Launch RViz after a 5-second delay to allow time for TF publishers to populate the cache
-    rviz = TimerAction(
+    rviz_node = TimerAction(
         period=5.0,
         actions=[
             Node(
@@ -156,6 +156,6 @@ def generate_launch_description():
         spawn_entity,
         robot_state_publisher,
         joint_state_publisher,
-        bridge,
-        rviz,
+        bridge_node,
+        rviz_node,
     ])
