@@ -40,23 +40,23 @@ def generate_launch_description():
         ]
     )
 
-    static_tf_odom = TimerAction(
-        period=1.0,
-        actions=[
-            Node(
-                package='tf2_ros',
-                executable='static_transform_publisher',
-                name='static_transform_publisher_odom',
-                arguments=[
-                    '--x', '0', '--y', '0', '--z', '0',
-                    '--roll', '0', '--pitch', '0', '--yaw', '0',
-                    '--frame-id', 'odom',
-                    '--child-frame-id', 'base_link'
-                ],
-                output='screen'
-            )
-        ]
-    )
+    # static_tf_odom = TimerAction(
+    #     period=1.0,
+    #     actions=[
+    #         Node(
+    #             package='tf2_ros',
+    #             executable='static_transform_publisher',
+    #             name='static_transform_publisher_odom',
+    #             arguments=[
+    #                 '--x', '0', '--y', '0', '--z', '0',
+    #                 '--roll', '0', '--pitch', '0', '--yaw', '0',
+    #                 '--frame-id', 'odom',
+    #                 '--child-frame-id', 'base_link'
+    #             ],
+    #             output='screen'
+    #         )
+    #     ]
+    # )
     
     # Spawn the robot entity in Gazebo after a 2-second delay
     spawn_entity = TimerAction(
@@ -152,7 +152,7 @@ def generate_launch_description():
     return LaunchDescription([
         gz_sim,
         static_tf_lidar,
-        static_tf_odom,
+        # static_tf_odom,
         spawn_entity,
         robot_state_publisher,
         joint_state_publisher,

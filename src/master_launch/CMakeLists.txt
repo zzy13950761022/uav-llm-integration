@@ -8,7 +8,7 @@ endif()
 # find dependencies
 find_package(ament_cmake REQUIRED)
 
-# install the launch files
+# install launch files
 install(
   DIRECTORY launch
   DESTINATION share/${PROJECT_NAME}
