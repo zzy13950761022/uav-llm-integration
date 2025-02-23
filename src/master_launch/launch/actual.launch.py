@@ -22,6 +22,3 @@ def generate_launch_description():
         IncludeLaunchDescription(PythonLaunchDescriptionSource(llm_integration_launch)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(deadman_safety_launch))
     ])
-
-if __name__ == '__main__':
-    generate_launch_description()

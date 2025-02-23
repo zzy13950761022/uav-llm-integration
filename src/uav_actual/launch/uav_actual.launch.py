@@ -9,29 +9,30 @@ def generate_launch_description():
     config_path = os.path.join(pkg_uav_actual, 'config')
     models_path = os.path.join(pkg_uav_actual, 'models')
     
-    # Launch the SICK LiDAR node
-    sick_scan_node = Node(
-        package='sick_scan_xd',
-        executable='sick_scan_xd_node',
-        name='sick_scan_xd',
-        parameters=[os.path.join(config_path, 'sick_scan_config.yaml')],
-        output='screen'
-    )
+    # # Launch the SICK LiDAR node
+    # sick_scan_node = Node(
+    #     package='sick_scan_xd',
+    #     executable='sick_scan_xd_node',
+    #     name='sick_scan_xd',
+    #     parameters=[os.path.join(config_path, 'sick_scan_config.yaml')],
+    #     output='screen'
+    # )
     
-    # Launch the Pioneer driver node (ARIA-based)
-    driver_node = TimerAction(
+    # Launch the Pioneer driver node (ARIA-based) with a delay
+    aria_node = TimerAction(
         period=2.0,
         actions=[
             Node(
                 package='uav_actual',
-                executable='driver_node',
-                name='driver_node',
-                output='screen'
+                executable='ariaNode',
+                name='ariaNode',
+                output='screen',
+                arguments=['-rp', '/dev/ttyUSB0']  # Passing the required serial port argument
             )
         ]
     )
     
-    # Launch robot_state_publisher for the real robot
+    # Launch robot_state_publisher using the actual Pioneer URDF
     robot_state_publisher = TimerAction(
         period=2.0,
         actions=[
@@ -45,7 +46,7 @@ def generate_launch_description():
         ]
     )
     
-    # Launch RViz
+    # Launch RViz for visualization
     rviz_node = TimerAction(
         period=5.0,
         actions=[
@@ -61,8 +62,8 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
-        sick_scan_node,
-        driver_node,
+        # sick_scan_node,
+        aria_node,
         robot_state_publisher,
         rviz_node
     ])
