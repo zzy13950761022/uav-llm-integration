@@ -43,9 +43,22 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-sick-scan-xd \
     && rm -rf /var/lib/apt/lists/*
 
-# Install pip and additional Python packages for LLM integration
+# Install pip and additional Python packages for LLM integration and evdev
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages requests evdev
+
+# Install dependencies for building AriaCoda
+RUN apt-get update && apt-get install -y git make g++ doxygen && rm -rf /var/lib/apt/lists/*
+
+# Clone and build AriaCoda from the alternative repository
+RUN git clone https://github.com/reedhedges/AriaCoda.git /opt/AriaCoda && \
+    cd /opt/AriaCoda && \
+    make -j6 && \
+    sudo make install && \
+    ldconfig
+
+# Optionally, update the library path so that ROS nodes can find libAria.so
+RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib' >> /etc/bash.bashrc
 
 # Set environment variables globally
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
@@ -63,7 +76,7 @@ WORKDIR /home/pioneer-container
 # Create ROS workspace
 RUN mkdir -p ~/uav-llm-integration/src
 
-# Copy entire context (including ROS project) into container
+# Copy entire context (including ROS projects) into container
 COPY --chown=pioneer-container:pioneer-container src/ /home/pioneer-container/uav-llm-integration/src/
 
 # Build ROS workspace
@@ -72,9 +85,9 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration &
 # Source workspace in .bashrc for the user
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
-# Set simulation environment variables
+# Set simulation environment variables (for simulation packages; update as needed for actual robot)
 ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
 ENV XDG_RUNTIME_DIR=/tmp/runtime-pioneer-container
 
-# Set the entrypoint
+# Set the entrypoint to bash
 ENTRYPOINT ["/bin/bash"]
