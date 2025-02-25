@@ -15,7 +15,7 @@ class DeadmanNode(Node):
         self.llm_sub = self.create_subscription(Twist, '/llm_cmd', self.llm_callback, 10)
         
         self.too_close = False
-        self.safety_distance = 0.5    # Meters
+        self.safety_distance = 1.0    # Meters
         
         self.joy_state = {}           # Will store JSON parsed from custom joy node
         self.latest_llm_cmd = Twist() # Fallback command (STOP)
@@ -31,13 +31,17 @@ class DeadmanNode(Node):
     def lidar_callback(self, msg: LaserScan):
         try:
             min_distance = min(msg.ranges)
-            self.too_close = min_distance < self.safety_distance
-            if self.too_close != self.previous_safety_state:
+            # Ignore noisy readings that report 0.01 (assumed to be noise)
+            if min_distance < 0.01:
+                return
+
+            new_too_close = min_distance < self.safety_distance
+            if new_too_close != self.too_close:
+                self.too_close = new_too_close
                 if self.too_close:
-                    self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
+                    self.get_logger().warn(f"Obstacle detected (min distance: {min_distance:.2f}m). Stopping UAV.")
                 else:
                     self.get_logger().info("Obstacle cleared, resuming movement.")
-                self.previous_safety_state = self.too_close
         except Exception as e:
             self.get_logger().error(f"Lidar error: {e}")
 
