@@ -19,7 +19,7 @@ def generate_launch_description():
                 executable='static_transform_publisher',
                 name='static_transform_publisher_lidar',
                 arguments=[
-                    '--x', '0', '--y', '0', '--z', '0',
+                    '--x', '-0.175', '--y', '0', '--z', '-0.3',
                     '--roll', '0', '--pitch', '0', '--yaw', '0',
                     '--frame-id', 'laser_frame',
                     '--child-frame-id', 'base_link'
@@ -95,7 +95,7 @@ def generate_launch_description():
             Node(
                 package='sick_scan_xd',
                 executable='sick_generic_caller',
-                name='sick_sstatic_tf_lidarcan_xd',
+                name='sick_scan_xd',
                 output='screen',
                 parameters=[{
                     "scanner_type": "sick_tim_5xx",
@@ -103,10 +103,9 @@ def generate_launch_description():
                     "port": "2112",
                     "frame_id": "laser_frame",
                     "range_min": 0.05,
-                    "range_max": 25.0,
-                    "publish_scan": True,
-                    "publish_cloud": False
-                }]
+                    "range_max": 25.0
+                }],
+                remappings=[('/sick_tim_5xx/scan', '/lidar')]
             )
         ]
     )

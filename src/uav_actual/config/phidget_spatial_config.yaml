@@ -1,8 +1,0 @@
-phidget_spatial:
-  ros__parameters:
-    serial_number: -1  # Auto-detect the first available Phidget
-    frame_id: "imu_link"
-    publish_rate: 50.0  # Hz, adjust based on requirements
-    magnetic_declination: 0.0  # Adjust based on location if needed
-    imu_algorithm: 1  # 0: None, 1: Kalman, 2: Complementary filter
-    gravity_vector: [0.0, 0.0, -9.81]  # Adjust if using in non-earth environments
