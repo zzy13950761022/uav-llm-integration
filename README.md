@@ -1,22 +1,25 @@
 USEFULL COMMANDS
 
 ```bash
-sudo evtest
-```
-
-```bash
-sudo chmod 666 /dev/input/eventX
-```
-
-```bash
 ls /dev/ttyUSB*
 ```
 
 ```bash
-sudo chmod 666 /dev/ttyUSB0
+sudo chmod 666 /dev/ttyUSB*
 ```
 
-TODO:
-Convert rviz actual to point cloud display/investigate for lidar implementation
-Unify code structure across packages
-Unify log displays
+```bash
+sudo evtest
+```
+
+```bash
+sudo chmod 666 /dev/input/event*
+```
+
+```bash
+lsusb
+```
+
+```bash
+sudo chmod 666 /dev/bus/usb/00*/0**
+```

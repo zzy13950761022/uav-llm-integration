@@ -28,7 +28,7 @@ def generate_launch_description():
             Node(
                 package='tf2_ros',
                 executable='static_transform_publisher',
-                name='static_transform_publisher_lidar',
+                name='static_tf_lidar',
                 arguments=[
                     '--x', '0', '--y', '0', '--z', '0',
                     '--roll', '0', '--pitch', '0', '--yaw', '0',
@@ -46,7 +46,7 @@ def generate_launch_description():
     #         Node(
     #             package='tf2_ros',
     #             executable='static_transform_publisher',
-    #             name='static_transform_publisher_odom',
+    #             name='static_tf_odom',
     #             arguments=[
     #                 '--x', '0', '--y', '0', '--z', '0',
     #                 '--roll', '0', '--pitch', '0', '--yaw', '0',
@@ -141,7 +141,7 @@ def generate_launch_description():
             Node(
                 package='rviz2',
                 executable='rviz2',
-                name='rviz2',
+                name='rviz_node',
                 arguments=['-d', os.path.join(config_path, 'rviz_config.rviz')],
                 parameters=[{'use_sim_time': True}],
                 output='screen'

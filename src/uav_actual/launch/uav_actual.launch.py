@@ -17,7 +17,7 @@ def generate_launch_description():
             Node(
                 package='tf2_ros',
                 executable='static_transform_publisher',
-                name='static_transform_publisher_lidar',
+                name='static_tf_lidar',
                 arguments=[
                     '--x', '-0.175', '--y', '0', '--z', '-0.3',
                     '--roll', '0', '--pitch', '0', '--yaw', '0',
@@ -66,7 +66,7 @@ def generate_launch_description():
             Node(
                 package='rviz2',
                 executable='rviz2',
-                name='rviz2',
+                name='rviz_node',
                 arguments=['-d', os.path.join(config_path, 'rviz_config.rviz')],
                 parameters=[{'use_sim_time': False}],
                 output='screen'
@@ -81,9 +81,9 @@ def generate_launch_description():
             Node(
                 package='uav_actual',
                 executable='ariaNode',
-                name='ariaNode',
+                name='aria_node',
                 output='screen',
-                arguments=['-rp', '/dev/ttyUSB0']  # Passing the required serial port argument
+                arguments=['-rp', '/dev/ttyUSB0']
             )
         ]
     )
@@ -95,15 +95,15 @@ def generate_launch_description():
             Node(
                 package='sick_scan_xd',
                 executable='sick_generic_caller',
-                name='sick_scan_xd',
+                name='sick_scan_node',
                 output='screen',
                 parameters=[{
-                    "scanner_type": "sick_tim_5xx",
-                    "hostname": "192.168.0.1",
-                    "port": "2112",
-                    "frame_id": "laser_frame",
-                    "range_min": 0.05,
-                    "range_max": 25.0
+                    'scanner_type': 'sick_tim_5xx',
+                    'hostname': '192.168.0.1',
+                    'port': '2112',
+                    'frame_id': 'laser_frame',
+                    'range_min': 0.05,
+                    'range_max': 25.0
                 }],
                 remappings=[('/sick_tim_5xx/scan', '/lidar')]
             )
