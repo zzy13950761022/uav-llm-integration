@@ -10,7 +10,7 @@ class CustomJoyNode(Node):
         super().__init__('custom_joy_node')
         self.publisher_ = self.create_publisher(String, '/custom_joy_cmd', 10)
 
-        # Look for the PS4 controller by name (case-insensitive match).
+        # Look for the PS4 controller by name.
         devices = [InputDevice(path) for path in list_devices()]
         self.device = None
         self.get_logger().info("Scanning available input devices:")
@@ -38,8 +38,7 @@ class CustomJoyNode(Node):
                 if event.type == ecodes.EV_KEY:
                     key_name = ecodes.KEY.get(event.code, f"KEY_{event.code}")
                     self.buttons[key_name] = event.value
-                    # Log detected button events.
-                    self.get_logger().info(f"Detected button: {key_name} = {event.value}")
+                    # self.get_logger().info(f"Detected button: {key_name} = {event.value}")
                     # Publish the current button state as JSON.
                     state = {"buttons": self.buttons}
                     msg = String()

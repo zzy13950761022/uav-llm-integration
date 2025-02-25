@@ -15,10 +15,10 @@ class DeadmanNode(Node):
         self.llm_sub = self.create_subscription(Twist, '/llm_cmd', self.llm_callback, 10)
         
         self.too_close = False
-        self.safety_distance = 0.5  # meters
+        self.safety_distance = 0.5    # Meters
         
-        self.joy_state = {}          # Will store JSON parsed from custom joy node (only buttons)
-        self.latest_llm_cmd = Twist()  # Fallback command
+        self.joy_state = {}           # Will store JSON parsed from custom joy node
+        self.latest_llm_cmd = Twist() # Fallback command (STOP)
         
         # State tracking for logging changes once.
         self.previous_deadman_state = None
@@ -51,15 +51,15 @@ class DeadmanNode(Node):
         self.latest_llm_cmd = msg
 
     def publish_command(self):
-        final_cmd = Twist()  # Default command: stop
+        final_cmd = Twist()  # Default command (STOP)
 
-        # 1. Safety override: if an obstacle is too close, always stop.
+        # Safety override: if an obstacle is too close, always stop.
         if self.too_close:
             self.cmd_pub.publish(final_cmd)
             return
 
-        # 2. Check deadman switch using custom joy node JSON.
-        # For the PS4 controller, we expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
+        # Check deadman switch using custom joy node JSON.
+        # For the PS4 controller, expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
         buttons = self.joy_state.get("buttons", {})
         deadman_pressed = (buttons.get("KEY_310", 0) == 1 and buttons.get("KEY_311", 0) == 1)
 
@@ -74,30 +74,33 @@ class DeadmanNode(Node):
             self.cmd_pub.publish(final_cmd)
             return
 
-        # 3. Determine directional command from buttons.
+        # Determine directional command from buttons using new mapping.
         # Mapping:
-        #   - KEY_307: forward → +0.5 m/s
-        #   - KEY_304: reverse → -0.5 m/s
-        #   - KEY_308: left    → +0.5 rad/s (turn left)
-        #   - KEY_305: right   → -0.5 rad/s (turn right)
+        # - Button "17": value -1 for forward (+0.5 m/s), 1 for reverse (-0.5 m/s)
+        # - Button "16": value -1 for left (+0.5 rad/s), 1 for right (-0.5 rad/s)
         FORWARD_SPEED = 0.5
         REVERSE_SPEED = -0.5
         TURN_LEFT_SPEED = 0.5
         TURN_RIGHT_SPEED = -0.5
 
-        linear_speed = 0.0
-        angular_speed = 0.0
+        value_17 = buttons.get("17", 0)
+        value_16 = buttons.get("16", 0)
 
-        if buttons.get("KEY_307", 0) == 1:
-            linear_speed += FORWARD_SPEED
-        if buttons.get("KEY_304", 0) == 1:
-            linear_speed += REVERSE_SPEED
-        if buttons.get("KEY_308", 0) == 1:
-            angular_speed += TURN_LEFT_SPEED
-        if buttons.get("KEY_305", 0) == 1:
-            angular_speed += TURN_RIGHT_SPEED
+        if value_17 == -1:
+            linear_speed = FORWARD_SPEED
+        elif value_17 == 1:
+            linear_speed = REVERSE_SPEED
+        else:
+            linear_speed = 0.0
 
-        # 4. If any directional button is pressed, use that command.
+        if value_16 == -1:
+            angular_speed = TURN_LEFT_SPEED
+        elif value_16 == 1:
+            angular_speed = TURN_RIGHT_SPEED
+        else:
+            angular_speed = 0.0
+
+        # If any directional button is pressed, use that command.
         command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
 
         if command_active != self.previous_command_active:
