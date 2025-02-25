@@ -61,6 +61,7 @@ class DeadmanNode(Node):
         # Check deadman switch using custom joy node JSON.
         # For the PS4 controller, expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
         buttons = self.joy_state.get("buttons", {})
+        axes = self.joy_state.get("axes", {})
         deadman_pressed = (buttons.get("KEY_310", 0) == 1 and buttons.get("KEY_311", 0) == 1)
 
         if deadman_pressed != self.previous_deadman_state:
@@ -74,31 +75,30 @@ class DeadmanNode(Node):
             self.cmd_pub.publish(final_cmd)
             return
 
-        # Determine directional command from buttons using new mapping.
-        # Mapping:
-        # - Button "17": value -1 for forward (+0.5 m/s), 1 for reverse (-0.5 m/s)
-        # - Button "16": value -1 for left (+0.5 rad/s), 1 for right (-0.5 rad/s)
+        # Determine directional command from buttons.
+        # Read D-pad (Hat Switch) values
+        hat_y = axes.get("ABS_HAT0Y", 0)  # Forward (-1), Reverse (1), Neutral (0)
+        hat_x = axes.get("ABS_HAT0X", 0)  # Left (-1), Right (1), Neutral (0)
+
         FORWARD_SPEED = 0.5
         REVERSE_SPEED = -0.5
         TURN_LEFT_SPEED = 0.5
         TURN_RIGHT_SPEED = -0.5
 
-        value_17 = buttons.get("17", 0)
-        value_16 = buttons.get("16", 0)
+        linear_speed = 0.0
+        angular_speed = 0.0
 
-        if value_17 == -1:
+        # Forward / Reverse logic
+        if hat_y == -1:  # Forward (Up on D-pad)
             linear_speed = FORWARD_SPEED
-        elif value_17 == 1:
+        elif hat_y == 1:  # Reverse (Down on D-pad)
             linear_speed = REVERSE_SPEED
-        else:
-            linear_speed = 0.0
 
-        if value_16 == -1:
+        # Left / Right logic
+        if hat_x == -1:  # Left (Left on D-pad)
             angular_speed = TURN_LEFT_SPEED
-        elif value_16 == 1:
+        elif hat_x == 1:  # Right (Right on D-pad)
             angular_speed = TURN_RIGHT_SPEED
-        else:
-            angular_speed = 0.0
 
         # If any directional button is pressed, use that command.
         command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
