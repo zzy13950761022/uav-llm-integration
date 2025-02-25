@@ -9,6 +9,10 @@ sudo chmod 666 /dev/input/eventX
 ```
 
 ```bash
+ls /dev/ttyUSB*
+```
+
+```bash
 sudo chmod 666 /dev/ttyUSB0
 ```
 
