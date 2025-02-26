@@ -15,10 +15,10 @@ class DeadmanNode(Node):
         self.llm_sub = self.create_subscription(Twist, '/llm_cmd', self.llm_callback, 10)
         
         self.too_close = False
-        self.safety_distance = 0.5  # meters
+        self.safety_distance = 1.0    # Meters
         
-        self.joy_state = {}          # Will store JSON parsed from custom joy node (only buttons)
-        self.latest_llm_cmd = Twist()  # Fallback command
+        self.joy_state = {}           # Will store JSON parsed from custom joy node
+        self.latest_llm_cmd = Twist() # Fallback command (STOP)
         
         # State tracking for logging changes once.
         self.previous_deadman_state = None
@@ -31,55 +31,59 @@ class DeadmanNode(Node):
     def lidar_callback(self, msg: LaserScan):
         try:
             min_distance = min(msg.ranges)
-            self.too_close = min_distance < self.safety_distance
-            if self.too_close != self.previous_safety_state:
+            # Ignore noisy readings that report 0.01 (assumed to be noise)
+            if min_distance < 0.01:
+                return
+
+            new_too_close = min_distance < self.safety_distance
+            if new_too_close != self.too_close:
+                self.too_close = new_too_close
                 if self.too_close:
-                    self.get_logger().warn(f"Obstacle detected at {min_distance:.2f}m! Stopping UAV.")
+                    self.get_logger().warn(f'Obstacle detected (min distance: {min_distance:.2f}m). Stopping UAV.')
                 else:
-                    self.get_logger().info("Obstacle cleared, resuming movement.")
-                self.previous_safety_state = self.too_close
+                    self.get_logger().info('Obstacle cleared, resuming movement.')
         except Exception as e:
-            self.get_logger().error(f"Lidar error: {e}")
+            self.get_logger().error(f'Lidar error: {e}')
 
     def joy_callback(self, msg: String):
         try:
             self.joy_state = json.loads(msg.data)
         except Exception as e:
-            self.get_logger().error(f"JSON parse error in joy_callback: {e}")
+            self.get_logger().error(f'JSON parse error in joy_callback: {e}')
 
     def llm_callback(self, msg: Twist):
         self.latest_llm_cmd = msg
 
     def publish_command(self):
-        final_cmd = Twist()  # Default command: stop
+        final_cmd = Twist()  # Default command (STOP)
 
-        # 1. Safety override: if an obstacle is too close, always stop.
+        # Safety override: if an obstacle is too close, always stop.
         if self.too_close:
             self.cmd_pub.publish(final_cmd)
             return
 
-        # 2. Check deadman switch using custom joy node JSON.
-        # For the PS4 controller, we expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
-        buttons = self.joy_state.get("buttons", {})
-        deadman_pressed = (buttons.get("KEY_310", 0) == 1 and buttons.get("KEY_311", 0) == 1)
+        # Check deadman switch using custom joy node JSON.
+        # For the PS4 controller, expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
+        buttons = self.joy_state.get('buttons', {})
+        axes = self.joy_state.get('axes', {})
+        deadman_pressed = (buttons.get('KEY_310', 0) == 1 and buttons.get('KEY_311', 0) == 1)
 
         if deadman_pressed != self.previous_deadman_state:
             if deadman_pressed:
-                self.get_logger().info("Deadman switch engaged.")
+                self.get_logger().info('Deadman switch engaged.')
             else:
-                self.get_logger().info("Deadman switch not engaged. Stopping UAV.")
+                self.get_logger().info('Deadman switch not engaged. Stopping UAV.')
             self.previous_deadman_state = deadman_pressed
 
         if not deadman_pressed:
             self.cmd_pub.publish(final_cmd)
             return
 
-        # 3. Determine directional command from buttons.
-        # Mapping:
-        #   - KEY_307: forward → +0.5 m/s
-        #   - KEY_304: reverse → -0.5 m/s
-        #   - KEY_308: left    → +0.5 rad/s (turn left)
-        #   - KEY_305: right   → -0.5 rad/s (turn right)
+        # Determine directional command from buttons.
+        # Read D-pad (Hat Switch) values
+        hat_y = axes.get('ABS_HAT0Y', 0)  # Forward (-1), Reverse (1), Neutral (0)
+        hat_x = axes.get('ABS_HAT0X', 0)  # Left (-1), Right (1), Neutral (0)
+
         FORWARD_SPEED = 0.5
         REVERSE_SPEED = -0.5
         TURN_LEFT_SPEED = 0.5
@@ -88,23 +92,26 @@ class DeadmanNode(Node):
         linear_speed = 0.0
         angular_speed = 0.0
 
-        if buttons.get("KEY_307", 0) == 1:
-            linear_speed += FORWARD_SPEED
-        if buttons.get("KEY_304", 0) == 1:
-            linear_speed += REVERSE_SPEED
-        if buttons.get("KEY_308", 0) == 1:
-            angular_speed += TURN_LEFT_SPEED
-        if buttons.get("KEY_305", 0) == 1:
-            angular_speed += TURN_RIGHT_SPEED
+        # Forward / Reverse logic
+        if hat_y == -1:  # Forward (Up on D-pad)
+            linear_speed = FORWARD_SPEED
+        elif hat_y == 1:  # Reverse (Down on D-pad)
+            linear_speed = REVERSE_SPEED
 
-        # 4. If any directional button is pressed, use that command.
+        # Left / Right logic
+        if hat_x == -1:  # Left (Left on D-pad)
+            angular_speed = TURN_LEFT_SPEED
+        elif hat_x == 1:  # Right (Right on D-pad)
+            angular_speed = TURN_RIGHT_SPEED
+
+        # If any directional button is pressed, use that command.
         command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
 
         if command_active != self.previous_command_active:
             if command_active:
-                self.get_logger().info("Publishing UAV command from joystick buttons.")
+                self.get_logger().info('Publishing UAV command from joystick buttons.')
             else:
-                self.get_logger().info("No joystick button input; using LLM command.")
+                self.get_logger().info('No joystick button input; using LLM command.')
             self.previous_command_active = command_active
 
         if command_active:
@@ -117,7 +124,7 @@ class DeadmanNode(Node):
 
     def on_shutdown(self):
         if rclpy.ok():
-            self.get_logger().info(f"Shutting down {self.get_name()}...")
+            self.get_logger().info(f'Shutting down {self.get_name()}...')
         self.destroy_node()
 
 def main(args=None):

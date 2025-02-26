@@ -19,5 +19,4 @@
     "titleBar.inactiveBackground": "#d9c0a999",
     "titleBar.inactiveForeground": "#15202b99"
   },
-  "cmake.ignoreCMakeListsMissing": true
 }

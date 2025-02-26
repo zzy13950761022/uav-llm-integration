@@ -8,25 +8,25 @@ class TextInputGUI(Node):
         super().__init__('text_in_node')
         self.publisher_ = self.create_publisher(String, '/text_in', 10)
         self.root = tk.Tk()
-        self.root.title("LLM Command Input")
+        self.root.title('LLM Command Input')
         self.entry = tk.Entry(self.root, width=50)
         self.entry.pack(padx=20, pady=10)
         self.entry.bind('<Return>', lambda event: self.send_command())
-        self.button = tk.Button(self.root, text="Send Command", command=self.send_command)
+        self.button = tk.Button(self.root, text='Send Command', command=self.send_command)
         self.button.pack(padx=20, pady=10)
-        self.root.protocol("WM_DELETE_WINDOW", self.on_shutdown)
+        self.root.protocol('WM_DELETE_WINDOW', self.on_shutdown)
 
     def send_command(self):
         command = self.entry.get()
         msg = String()
         msg.data = command
         self.publisher_.publish(msg)
-        self.get_logger().info(f"Published command: {command}")
+        self.get_logger().info(f'Published command: {command}')
         self.entry.delete(0, tk.END)
 
     def on_shutdown(self):
         if rclpy.ok():
-            self.get_logger().info(f"Shutting down {self.get_name()}...")
+            self.get_logger().info(f'Shutting down {self.get_name()}...')
         self.destroy_node()
         self.root.quit()  # Quit Tkinter event loop
 

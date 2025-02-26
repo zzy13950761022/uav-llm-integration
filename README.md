@@ -1,11 +1,25 @@
-RUN:
+USEFULL COMMANDS
+
+```bash
+ls /dev/ttyUSB*
+```
+
+```bash
+sudo chmod 666 /dev/ttyUSB*
+```
 
 ```bash
 sudo evtest
 ```
 
-THEN:
+```bash
+sudo chmod 666 /dev/input/event*
+```
 
 ```bash
-sudo chmod 666 /dev/input/eventX
+lsusb
+```
+
+```bash
+sudo chmod 666 /dev/bus/usb/00*/0**
 ```
