@@ -15,7 +15,7 @@ def generate_launch_description():
         cmd=[
             'gz', 'sim', '-r', os.path.join(worlds_path, 'world.sdf'),
             '--gui-config', os.path.join(config_path, 'gaz.config'),
-            '--render-engine', 'ogre2'
+            # '--render-engine', 'ogre2'
         ],
         output='screen'
     )

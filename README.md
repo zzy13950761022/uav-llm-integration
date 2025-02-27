@@ -16,10 +16,6 @@ sudo evtest
 sudo chmod 666 /dev/input/event*
 ```
 
-```bash
-lsusb
-```
-
-```bash
-sudo chmod 666 /dev/bus/usb/00*/0**
+```sh
+sudo chmod 666 /dev/dri/card*
 ```

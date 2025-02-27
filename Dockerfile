@@ -13,13 +13,13 @@ RUN apt-get update && apt-get install -y \
     software-properties-common \
     && rm -rf /var/lib/apt/lists/*
 
-# Install additional packages for simulation
-RUN apt-get update && apt-get install -y \
-    libegl-mesa0 \
-    libgl-dev \
-    mesa-utils \
-    xvfb \
-    && rm -rf /var/lib/apt/lists/*
+# # Install additional packages for simulation
+# RUN apt-get update && apt-get install -y \
+#     libegl-mesa0 \
+#     libgl-dev \
+#     mesa-utils \
+#     xvfb \
+#     && rm -rf /var/lib/apt/lists/*
 
 # Set up ROS 2 Jazzy repositories
 RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
@@ -41,7 +41,6 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-rviz2 \
     ros-jazzy-sick-scan-xd \
-    ros-jazzy-depthai-ros \
     && rm -rf /var/lib/apt/lists/*
 
 # Install pip and additional Python packages for LLM integration and evdev
@@ -86,7 +85,7 @@ RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration &
 # Source workspace in .bashrc for the user
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
-# Set simulation environment variables (for simulation packages; update as needed for actual robot)
+# Set simulation environment variables (for simulation packages)
 ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
 ENV XDG_RUNTIME_DIR=/tmp/runtime-pioneer-container
 
