@@ -39,6 +39,9 @@ RUN apt-get update && apt-get install -y \
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages requests evdev transformers torch opencv-python
 
+# Set a shared cache location for Hugging Face models
+ENV HF_HOME=/home/pioneer-container/.cache/huggingface
+
 # Install dependencies for building AriaCoda
 RUN apt-get update && apt-get install -y git make g++ doxygen && rm -rf /var/lib/apt/lists/*
 
@@ -64,6 +67,11 @@ RUN echo 'echo "Press up to view launch command"; history -s "ros2 launch master
 # Switch to the new user
 USER pioneer-container
 WORKDIR /home/pioneer-container
+
+# Preload the BLIP model so it's cached for runtime
+RUN python3 -c "from transformers import BlipProcessor, BlipForConditionalGeneration; \
+BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-base'); \
+BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base')"
 
 # Create ROS workspace
 RUN mkdir -p ~/uav-llm-integration/src
