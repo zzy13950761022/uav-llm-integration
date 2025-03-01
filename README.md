@@ -17,5 +17,5 @@ sudo chmod 666 /dev/input/event*
 ```
 
 ```sh
-sudo chmod 666 /dev/dri/card*
+sudo chmod 666 /dev/dri
 ```

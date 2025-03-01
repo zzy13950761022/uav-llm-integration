@@ -37,7 +37,7 @@ RUN apt-get update && apt-get install -y \
 
 # Install pip and additional Python packages for LLM integration and evdev
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
-RUN pip3 install --break-system-packages requests evdev opencv-python
+RUN pip3 install --break-system-packages requests evdev transformers torch opencv-python
 
 # Install dependencies for building AriaCoda
 RUN apt-get update && apt-get install -y git make g++ doxygen && rm -rf /var/lib/apt/lists/*
