@@ -53,7 +53,7 @@ RUN apt-get update && apt-get install -y \
 # Install Python & Additional Packages
 ########################################
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
-RUN pip3 install --break-system-packages requests evdev transformers torch opencv-python
+RUN pip3 install --break-system-packages evdev numpy opencv-python requests torch transformers
 
 # Set a shared cache location for Hugging Face models
 ENV HF_HOME=/home/pioneer-container/.cache/huggingface
