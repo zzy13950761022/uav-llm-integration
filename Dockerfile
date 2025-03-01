@@ -1,27 +1,41 @@
-# Use Ubuntu 24.04 as the base image
+########################################
+# Base Image & Environment Variables
+########################################
 FROM ubuntu:24.04
-
-# Avoid prompts from apt
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install necessary packages
+########################################
+# Install OS Dependencies & Tools
+########################################
 RUN apt-get update && apt-get install -y \
     curl \
     gnupg2 \
     lsb-release \
     sudo \
     software-properties-common \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# Set up ROS 2 Jazzy repositories
-RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
-RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+########################################
+# Setup ROS 2 Jazzy Repository & Key
+########################################
+RUN curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key \
+    -o /usr/share/keyrings/ros-archive-keyring.gpg
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] \
+http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" \
+    | tee /etc/apt/sources.list.d/ros2.list > /dev/null
 
-# Set up Gazebo Harmonic repositories
-RUN curl -sSL https://packages.osrfoundation.org/gazebo.gpg | sudo tee /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg > /dev/null
-RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+########################################
+# Setup Gazebo Harmonic Repository & Key
+########################################
+RUN curl -sSL https://packages.osrfoundation.org/gazebo.gpg \
+    | sudo tee /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg > /dev/null
+RUN echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] \
+http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" \
+    | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
 
-# Install ROS 2 Jazzy, Gazebo Harmonic, and additional dependencies
+########################################
+# Install ROS, Gazebo, and ROS Tools
+########################################
 RUN apt-get update && apt-get install -y \
     ros-jazzy-desktop \
     gz-harmonic \
@@ -33,62 +47,78 @@ RUN apt-get update && apt-get install -y \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-rviz2 \
     ros-jazzy-sick-scan-xd \
-    && rm -rf /var/lib/apt/lists/*
+ && rm -rf /var/lib/apt/lists/*
 
-# Install pip and additional Python packages for LLM integration and evdev
+########################################
+# Install Python & Additional Packages
+########################################
 RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages requests evdev transformers torch opencv-python
 
 # Set a shared cache location for Hugging Face models
 ENV HF_HOME=/home/pioneer-container/.cache/huggingface
 
-# Install dependencies for building AriaCoda
-RUN apt-get update && apt-get install -y git make g++ doxygen && rm -rf /var/lib/apt/lists/*
-
-# Clone and build AriaCoda
+########################################
+# Install Build Tools and Build AriaCoda
+########################################
+RUN apt-get update && apt-get install -y \
+    git \
+    make \
+    g++ \
+    doxygen \
+ && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/reedhedges/AriaCoda.git /opt/AriaCoda && \
     cd /opt/AriaCoda && \
     make -j6 && \
     sudo make install && \
     ldconfig
 
-# Ensure the library path is recognized
+# Ensure shared libraries are found
 RUN echo 'export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/lib' >> /etc/bash.bashrc
 
-# Set environment variables globally
+########################################
+# Global ROS Environment Setup
+########################################
 RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
 
-# Create new user to run GUI applications
-RUN useradd -m pioneer-container && echo "pioneer-container:password" | chpasswd && adduser pioneer-container sudo
+########################################
+# Create and Configure User for GUI Applications
+########################################
+RUN useradd -m pioneer-container && \
+    echo "pioneer-container:password" | chpasswd && \
+    adduser pioneer-container sudo
+# Prepopulate a launch command in new .bashrc
+RUN echo 'echo "Usage: ros2 launch master_launch [sim.launch.py|actual.launch.py]"; history -s "ros2 launch master_launch "' >> /home/pioneer-container/.bashrc
 
-# Prepopulate a command in the new user's .bashrc
-RUN echo 'echo "Press up to view launch command"; history -s "ros2 launch master_launch "' >> /home/pioneer-container/.bashrc
-
-# Switch to the new user
+########################################
+# Switch to New User and Setup Workspace
+########################################
 USER pioneer-container
 WORKDIR /home/pioneer-container
 
-# Preload the BLIP model so it's cached for runtime
+# Preload the BLIP model so it caches at runtime
 RUN python3 -c "from transformers import BlipProcessor, BlipForConditionalGeneration; \
-BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-base'); \
-BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base')"
+    BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-base'); \
+    BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base')"
 
-# Create ROS workspace
+# Create ROS Workspace
 RUN mkdir -p ~/uav-llm-integration/src
 
-# Copy entire context into container
+# Copy project source and instructions into container
 COPY --chown=pioneer-container:pioneer-container src/ /home/pioneer-container/uav-llm-integration/src/
 COPY --chown=pioneer-container:pioneer-container llm_instructions.txt /home/pioneer-container/uav-llm-integration/
 
-# Build ROS workspace
+# Build the ROS workspace
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration && colcon build"
-
-# Source workspace in .bashrc for the user
+# Automatically source the ROS workspace in .bashrc
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
-# Set simulation environment variables (for simulation packages)
+########################################
+# Simulation Environment Variables & EntryPoint
+########################################
+# Set simulation-specific environment variables
 ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
 ENV XDG_RUNTIME_DIR=/tmp/runtime-pioneer-container
 
-# Set the entrypoint to bash
+# Set the default entrypoint to bash
 ENTRYPOINT ["/bin/bash"]

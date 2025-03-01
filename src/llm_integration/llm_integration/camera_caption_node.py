@@ -25,6 +25,7 @@ class CameraEchoNode(Node):
         self.processor = None
         self.model = None
         self._model_lock = threading.Lock()
+        self.current_caption = None  # Track the last caption
 
         # Eagerly load the model at startup
         self.load_model()
@@ -44,16 +45,20 @@ class CameraEchoNode(Node):
 
     def image_callback(self, msg):
         try:
+            # Convert ROS Image message to OpenCV image (BGR format)
             cv_image = self.bridge.imgmsg_to_cv2(msg, "bgr8")
         except CvBridgeError as e:
             self.get_logger().error(f"CV Bridge error: {e}")
             return
 
-        # Display the image
+        # Display the image (BGR is fine for OpenCV display)
         cv2.imshow(self.window_name, cv_image)
         if cv2.waitKey(1) & 0xFF == 27:
             self.get_logger().info("ESC pressed, shutting down Camera Echo Node.")
             self.on_shutdown()
+
+        # Convert the image from BGR to RGB for correct color processing
+        cv_image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
 
         # Lazy-load the captioning model if needed.
         if self.model is None or self.processor is None:
@@ -63,10 +68,15 @@ class CameraEchoNode(Node):
             return
 
         try:
-            inputs = self.processor(cv_image, return_tensors="pt")
+            # Generate caption using the BLIP model on the RGB image
+            inputs = self.processor(cv_image_rgb, return_tensors="pt")
             out = self.model.generate(**inputs, max_length=20)
             caption = self.processor.decode(out[0], skip_special_tokens=True)
-            self.get_logger().info(f"Caption: {caption}")
+
+            # Log only if the caption has changed
+            if caption != self.current_caption:
+                self.current_caption = caption
+                self.get_logger().info(f"Caption updated: {caption}")
         except Exception as e:
             self.get_logger().error(f"Error generating caption: {e}")
 
