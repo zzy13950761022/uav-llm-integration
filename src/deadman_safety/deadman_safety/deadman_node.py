@@ -108,10 +108,10 @@ class DeadmanNode(Node):
         command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
 
         if command_active != self.previous_command_active:
-            if command_active:
-                self.get_logger().info('Publishing UAV command from joystick buttons.')
-            else:
-                self.get_logger().info('No joystick button input; using LLM command.')
+            # if command_active:
+            #     self.get_logger().info('Publishing UAV command from joystick buttons.')
+            # else:
+            #     self.get_logger().info('No joystick button input; using LLM command.')
             self.previous_command_active = command_active
 
         if command_active:

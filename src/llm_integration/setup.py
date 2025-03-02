@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'llm_node = llm_integration.llm_node:main',
             'text_in_node = llm_integration.text_in_node:main',
+            'camera_caption_node = llm_integration.camera_caption_node:main',
         ],
     },
 )

@@ -17,9 +17,9 @@ sudo chmod 666 /dev/input/event*
 ```
 
 ```bash
-lsusb
+sudo chmod 666 /dev/dri/card1
 ```
 
-```bash
-sudo chmod 666 /dev/bus/usb/00*/0**
+```sh
+sudo chmod 666 /dev/dri
 ```

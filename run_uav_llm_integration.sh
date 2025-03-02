@@ -43,10 +43,10 @@ docker run -it --rm \
     --env-file $ENV_FILE \
     -e DISPLAY=$DISPLAY \
     -e LIBGL_ALWAYS_SOFTWARE=1 \
-    -e __GLX_VENDOR_LIBRARY_NAME=mesa \
     -e NO_AT_BRIDGE=1 \
     -e QT_X11_NO_MITSHM=1 \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
+    --device /dev/dri:/dev/dri \
     --device /dev/ttyUSB0:/dev/ttyUSB0 \
     --device /dev/input:/dev/input \
     --privileged \
