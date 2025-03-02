@@ -32,6 +32,10 @@ class CameraCaptionNode(Node):
         self.load_model()
 
     def load_model(self):
+        '''
+        Load the BLIP model for image captioning.
+        This method is thread-safe and should be called only once.
+        '''
         with self._model_lock:
             if self.model is None or self.processor is None:
                 try:
@@ -144,6 +148,9 @@ class CameraCaptionNode(Node):
         return positions
 
     def image_callback(self, msg):
+        '''
+        Callback for camera image messages.
+        '''
         try:
             # Convert ROS Image message to OpenCV image (BGR)
             cv_image = self.bridge.imgmsg_to_cv2(msg, 'bgr8')
