@@ -16,6 +16,10 @@ sudo evtest
 sudo chmod 666 /dev/input/event*
 ```
 
+```bash
+sudo chmod 666 /dev/dri/card1
+```
+
 ```sh
 sudo chmod 666 /dev/dri
 ```
