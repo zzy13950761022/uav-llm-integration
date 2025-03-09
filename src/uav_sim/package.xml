@@ -3,9 +3,9 @@
 <package format="3">
   <name>uav_sim</name>
   <version>0.0.1</version>
-  <description>A ROS 2 package for simulating a UAV based on Pioneer 3AT with Gazebo Harmonic and RViz</description>
+  <description>Package for simulating a UAV based on Pioneer 3AT with Gazebo Harmonic and RViz</description>
   <maintainer email="22877792@student.uwa.edu.au">Conan Po Dewitt</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT License</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
 
@@ -19,9 +19,6 @@
   <depend>joint_state_publisher</depend>
 
   <exec_depend>ros2launch</exec_depend>
-
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>
