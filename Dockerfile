@@ -3,6 +3,28 @@
 ########################################
 FROM ubuntu:24.04
 ENV DEBIAN_FRONTEND=noninteractive
+ARG SAFETY_STOP_DISTANCE
+ARG MAX_FORWARD_SPEED
+ARG MAX_REVERSE_SPEED
+ARG MAX_TURN_LEFT_SPEED
+ARG MAX_TURN_RIGHT_SPEED
+ARG AREA_THRESHOLD
+ARG LLM_URL
+ARG LLM_MODEL
+ARG LLM_TEMPERATURE
+ARG LLM_API_INTERVAL
+ARG LLM_PAUSE
+ENV SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
+    MAX_FORWARD_SPEED=${MAX_FORWARD_SPEED} \
+    MAX_REVERSE_SPEED=${MAX_REVERSE_SPEED} \
+    MAX_TURN_LEFT_SPEED=${MAX_TURN_LEFT_SPEED} \
+    MAX_TURN_RIGHT_SPEED=${MAX_TURN_RIGHT_SPEED} \
+    AREA_THRESHOLD=${AREA_THRESHOLD} \
+    LLM_URL=${LLM_URL} \
+    LLM_MODEL=${LLM_MODEL} \
+    LLM_TEMPERATURE=${LLM_TEMPERATURE} \
+    LLM_API_INTERVAL=${LLM_API_INTERVAL} \
+    LLM_PAUSE=${LLM_PAUSE}
 
 ########################################
 # Install OS Dependencies & Tools
@@ -106,7 +128,7 @@ RUN mkdir -p ~/uav-llm-integration/src
 
 # Copy project source and instructions into container
 COPY --chown=pioneer-container:pioneer-container src/ /home/pioneer-container/uav-llm-integration/src/
-COPY --chown=pioneer-container:pioneer-container llm_instructions.txt /home/pioneer-container/uav-llm-integration/
+COPY --chown=pioneer-container:pioneer-container prompt.txt /home/pioneer-container/uav-llm-integration/
 
 # Build the ROS workspace
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration && colcon build"
