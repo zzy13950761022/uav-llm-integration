@@ -111,6 +111,7 @@ class LLMNode(Node):
             f'You may only change linear or angular, not both.\n'
             f'Maximum value for linear or angular is 0.5 m/s.\n'
             f'Negative angular values are clockwise.\n'
+            f'If desired object is not in field of view, rotate clockwise.\n'
         )
         #self.get_logger().info('Triggering LLM API call with prompt:\n' + prompt)
         success = self.call_api(prompt)
