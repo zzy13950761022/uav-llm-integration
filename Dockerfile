@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     sudo \
     software-properties-common \
+    libxcb-xinerama0 \
  && rm -rf /var/lib/apt/lists/*
 
 ########################################

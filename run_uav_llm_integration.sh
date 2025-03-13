@@ -1,5 +1,14 @@
 #!/bin/bash
 
+# Determine OS type
+OS=$(uname)
+echo "Detected OS: $OS"
+if [[ "$OS" == "Darwin" ]]; then
+    IS_MACOS=true
+else
+    IS_MACOS=false
+fi
+
 # Define variables
 IMAGE_NAME="uav-llm-integration"
 CONTAINER_NAME="uav-llm-integration-container"
@@ -12,10 +21,12 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-# Check if a joystick is detected
-if [ ! -e "/dev/input/js0" ]; then
-    echo "Error: No joystick detected! Please connect a controller before launching."
-    exit 1
+# For Linux systems, check if a joystick is detected
+if [ "$IS_MACOS" = false ]; then
+    if [ ! -e "/dev/input/js0" ]; then
+        echo "Error: No joystick detected! Please connect a controller before launching."
+        exit 1
+    fi
 fi
 
 # Remove any existing container with the same name
@@ -52,24 +63,35 @@ docker build \
   --build-arg LLM_PAUSE=${LLM_PAUSE} \
   -t $IMAGE_NAME .
 
-# Allow Docker access to the X server for GUI applications
-xhost +local:docker
+if [ "$IS_MACOS" = false ]; then
+    # Allow Docker access to the X server for GUI applications on Linux
+    xhost +local:docker
+fi
 
-# Run the container
 echo "Running the Docker container..."
-docker run -it --rm \
-    --name $CONTAINER_NAME \
-    --env-file $ENV_FILE \
-    -e DISPLAY=$DISPLAY \
-    -e LIBGL_ALWAYS_SOFTWARE=1 \
-    -e NO_AT_BRIDGE=1 \
-    -e QT_X11_NO_MITSHM=1 \
-    -v /tmp/.X11-unix:/tmp/.X11-unix \
-    --device /dev/dri:/dev/dri \
-    --device /dev/ttyUSB0:/dev/ttyUSB0 \
-    --device /dev/input:/dev/input \
-    --privileged \
-    $IMAGE_NAME
+if [ "$IS_MACOS" = true ]; then
+    # macOS: Run container without X11 or device mounts (adjust as needed)
+    docker run -it --rm \
+        --name $CONTAINER_NAME \
+        --env-file $ENV_FILE \
+        --privileged \
+        $IMAGE_NAME
+else
+    # Linux: Include X11 settings and device access for joystick and graphics
+    docker run -it --rm \
+        --name $CONTAINER_NAME \
+        --env-file $ENV_FILE \
+        -e DISPLAY=$DISPLAY \
+        -e LIBGL_ALWAYS_SOFTWARE=1 \
+        -e NO_AT_BRIDGE=1 \
+        -e QT_X11_NO_MITSHM=1 \
+        -v /tmp/.X11-unix:/tmp/.X11-unix \
+        --device /dev/dri:/dev/dri \
+        --device /dev/ttyUSB0:/dev/ttyUSB0 \
+        --device /dev/input:/dev/input \
+        --privileged \
+        $IMAGE_NAME
 
-# Reset X server access
-xhost -local:docker
+    # Reset X server access
+    xhost -local:docker
+fi
