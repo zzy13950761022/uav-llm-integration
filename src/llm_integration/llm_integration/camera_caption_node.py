@@ -1,3 +1,4 @@
+import os
 import time
 import rclpy
 from rclpy.node import Node
@@ -19,6 +20,7 @@ class CameraCaptionNode(Node):
             self.image_callback,
             10
         )
+        self.threshold = int(os.getenv('AREA_THRESHOLD', 500))
         self.bridge = CvBridge()
         self.window_name = 'Masked View'
         cv2.namedWindow(self.window_name, cv2.WINDOW_NORMAL)
@@ -57,24 +59,30 @@ class CameraCaptionNode(Node):
         # Convert image from BGR to HSV
         hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
         objects = []
-        # Create a blank masked image (black background)
-        masked_image = np.zeros_like(image)
+        # Create a blank masked image (white background)
+        masked_image = np.ones_like(image) * 255
 
         # Define HSV color ranges (red uses two ranges) and corresponding BGR values
         color_ranges = {
             'red': [((0, 100, 100), (10, 255, 255)), ((160, 100, 100), (180, 255, 255))],
+            'orange': [((10, 100, 100), (25, 255, 255))],
             'blue': [((100, 150, 0), (140, 255, 255))],
             'green': [((40, 70, 70), (80, 255, 255))],
-            'yellow': [((20, 100, 100), (30, 255, 255))]
+            'yellow': [((20, 100, 100), (30, 255, 255))],
+            'purple': [((130, 50, 50), (160, 255, 255))],
+            'cyan': [((80, 100, 100), (100, 255, 255))]
         }
         color_bgr = {
             'red': (0, 0, 255),
+            'orange': (0, 165, 255),
             'blue': (255, 0, 0),
             'green': (0, 255, 0),
-            'yellow': (0, 255, 255)
+            'yellow': (0, 255, 255),
+            'purple': (128, 0, 128),
+            'cyan': (255, 255, 0)
         }
         # Minimum area to filter out noise
-        area_threshold = 500
+        area_threshold = self.threshold
 
         for color, ranges in color_ranges.items():
             combined_mask = None
@@ -121,10 +129,10 @@ class CameraCaptionNode(Node):
                 objects.append({'label': color, 'shape': shape, 'bbox': (x, y, w, h)})
                 
                 # Draw bounding box and label on the masked image
-                cv2.rectangle(masked_image, (x, y), (x+w, y+h), (255, 255, 255), 2)
+                cv2.rectangle(masked_image, (x, y), (x+w, y+h), (0, 0, 0), 2)
                 label_text = f'{color} {shape}'
                 cv2.putText(masked_image, label_text, (x, y-10),
-                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 255), 2)
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 0, 0), 2)
         
         return objects, masked_image
 
@@ -164,9 +172,7 @@ class CameraCaptionNode(Node):
         
         # Display the masked image instead of the raw camera feed
         cv2.imshow(self.window_name, masked_image)
-        if cv2.waitKey(1) & 0xFF == 27:
-            self.get_logger().info('ESC pressed, shutting down Camera Caption Node.')
-            self.on_shutdown()
+        cv2.waitKey(1)
 
         # Convert image to RGB for captioning
         cv_image_rgb = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)

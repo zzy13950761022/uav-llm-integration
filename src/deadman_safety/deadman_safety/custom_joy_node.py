@@ -34,6 +34,9 @@ class CustomJoyNode(Node):
         self.joy_thread.start()
 
     def read_loop(self):
+        '''
+        Continuously read joystick events and publish the current state.
+        '''
         try:
             for event in self.device.read_loop():
                 if event.type == ecodes.EV_KEY:

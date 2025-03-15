@@ -20,9 +20,8 @@ setup(
     zip_safe=True,
     maintainer='Conan Po Dewitt',
     maintainer_email='22877792@student.uwa.edu.au',
-    description='Safety node for LLM integration',
-    license='TODO: License declaration',
-    tests_require=['pytest'],
+    description='Safety package for LLM integration',
+    license='MIT License',
     entry_points={
         'console_scripts': [
             'deadman_node = deadman_safety.deadman_node:main',

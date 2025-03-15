@@ -3,9 +3,9 @@
 <package format="3">
   <name>uav_actual</name>
   <version>0.0.1</version>
-  <description>A ROS 2 package for running the real Pioneer 3AT with actual sensors and hardware control</description>
+  <description>Package for running the real Pioneer 3AT with sensors and hardware control</description>
   <maintainer email="22877792@student.uwa.edu.au">Conan Po Dewitt</maintainer>
-  <license>TODO: License declaration</license>
+  <license>MIT License</license>
 
   <buildtool_depend>ament_cmake</buildtool_depend>
   
@@ -13,12 +13,8 @@
   <depend>geometry_msgs</depend>
   <depend>robot_state_publisher</depend>
   <depend>sick_scan_xd</depend>
-  <!-- Future dependencies for phidget_spatial and luxonis_depth_ai -->
 
   <exec_depend>ros2launch</exec_depend>
-
-  <test_depend>ament_lint_auto</test_depend>
-  <test_depend>ament_lint_common</test_depend>
 
   <export>
     <build_type>ament_cmake</build_type>

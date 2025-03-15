@@ -33,7 +33,9 @@ class TextInputGUI(Node):
         self.root.protocol('WM_DELETE_WINDOW', self.on_shutdown)
 
     def send_command(self):
-        '''Publish the text in the entry field to the /text_in topic.'''
+        '''
+        Publish the text in the entry field to the /text_in topic.
+        '''
         command = self.entry.get()
         msg = String()
         msg.data = command
@@ -42,14 +44,18 @@ class TextInputGUI(Node):
         self.entry.delete(0, tk.END)
 
     def stop_llm(self):
-        '''Publish the LLM_STOP command to the /text_in topic.'''
+        '''
+        Publish the LLM_STOP command to the /text_in topic.
+        '''
         msg = String()
         msg.data = 'LLM_STOP'
         self.publisher_.publish(msg)
         self.get_logger().info('Published LLM_STOP command.')
 
     def load_from_file(self):
-        '''Load text from a file and insert it into the entry field.'''
+        '''
+        Load text from a file and insert it into the entry field.
+        '''
         filename = filedialog.askopenfilename(title='Select Instruction File', filetypes=[('Text files', '*.txt')])
         if filename:
             try:
