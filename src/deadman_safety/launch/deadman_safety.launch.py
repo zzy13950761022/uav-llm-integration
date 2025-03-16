@@ -17,4 +17,11 @@ def generate_launch_description():
         output='screen'
     )
 
-    return LaunchDescription([deadman_node, custom_joy_node])
+    custom_camera_node = Node(
+        package='deadman_safety',
+        executable='custom_camera_node',
+        name='custom_camera_node',
+        output='screen'
+    )
+
+    return LaunchDescription([deadman_node, custom_joy_node, custom_camera_node])

@@ -98,14 +98,12 @@ def generate_launch_description():
                 name='sick_scan_node',
                 output='screen',
                 parameters=[{
-                    'scanner_type': 'sick_tim_5xx',
+                    'scanner_type': 'sick_tim_7xx',
                     'hostname': '192.168.0.1',
                     'port': '2112',
                     'frame_id': 'laser_frame',
-                    'range_min': 0.05,
-                    'range_max': 25.0
                 }],
-                remappings=[('/sick_tim_5xx/scan', '/lidar')]
+                remappings=[('/sick_tim_7xx/scan', '/lidar')]
             )
         ]
     )

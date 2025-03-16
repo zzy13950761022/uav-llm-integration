@@ -27,6 +27,7 @@ setup(
         'console_scripts': [
             'deadman_node = deadman_safety.deadman_node:main',
             'custom_joy_node = deadman_safety.custom_joy_node:main',
+            'custom_camera_node = deadman_safety.custom_camera_node:main',
         ],
     },
 )

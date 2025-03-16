@@ -11,6 +11,7 @@ RUN apt-get update && apt-get install -y \
     lsb-release \
     sudo \
     software-properties-common \
+    usbutils \
     && rm -rf /var/lib/apt/lists/*
 
 # Install additional packages for simulation
