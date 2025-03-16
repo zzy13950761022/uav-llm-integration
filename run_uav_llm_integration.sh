@@ -67,8 +67,7 @@ docker run -it --rm \
     -v /tmp/.X11-unix:/tmp/.X11-unix \
     --device /dev/dri:/dev/dri \
     --device /dev/ttyUSB0:/dev/ttyUSB0 \
-    --device /dev/bus/usb/:/dev/bus/usb/ \
-    --device-cgroup-rule='c 189:* rmw' \
+    --device /dev/video0:/dev/video0 \
     --device /dev/input:/dev/input \
     --privileged \
     $IMAGE_NAME
