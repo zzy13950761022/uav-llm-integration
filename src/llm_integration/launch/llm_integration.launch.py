@@ -19,7 +19,16 @@ def generate_launch_description():
         output='screen'
     )
 
+    # Node for processing camera images and publishing captions on /camera_caption.
+    camera_caption_node = Node(
+        package='llm_integration',
+        executable='camera_caption_node',
+        name='camera_caption_node',
+        output='screen'
+    )
+
     return LaunchDescription([
         llm_node,
-        text_in_node
+        text_in_node,
+        camera_caption_node,
     ])

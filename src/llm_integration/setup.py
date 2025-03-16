@@ -20,13 +20,13 @@ setup(
     zip_safe=True,
     maintainer='Conan Po Dewitt',
     maintainer_email='22877792@student.uwa.edu.au',
-    description='Integration of LLM into UAV for motion control',
-    license='TODO: License declaration',
-    tests_require=['pytest'],
+    description='Integration of LLM API for motion control',
+    license='MIT License',
     entry_points={
         'console_scripts': [
             'llm_node = llm_integration.llm_node:main',
             'text_in_node = llm_integration.text_in_node:main',
+            'camera_caption_node = llm_integration.camera_caption_node:main',
         ],
     },
 )

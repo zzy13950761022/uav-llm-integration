@@ -1,3 +1,4 @@
+import os
 import rclpy
 from rclpy.node import Node
 from geometry_msgs.msg import Twist
@@ -15,7 +16,7 @@ class DeadmanNode(Node):
         self.llm_sub = self.create_subscription(Twist, '/llm_cmd', self.llm_callback, 10)
         
         self.too_close = False
-        self.safety_distance = 1.0    # Meters
+        self.safety_distance = float(os.environ.get('SAFETY_STOP_DISTANCE', 1.0))
         
         self.joy_state = {}           # Will store JSON parsed from custom joy node
         self.latest_llm_cmd = Twist() # Fallback command (STOP)
@@ -28,7 +29,16 @@ class DeadmanNode(Node):
         # Timer to publish command at 10 Hz.
         self.timer = self.create_timer(0.1, self.publish_command)
 
+        # Load environment variables for speed limits.
+        self.max_forward_speed = float(os.environ.get('MAX_FORWARD_SPEED', 0.5))
+        self.max_reverse_speed = float(os.environ.get('MAX_REVERSE_SPEED', -0.5))
+        self.max_turn_left_speed = float(os.environ.get('MAX_TURN_LEFT_SPEED', 0.5))
+        self.max_turn_right_speed = float(os.environ.get('MAX_TURN_RIGHT_SPEED', -0.5))
+
     def lidar_callback(self, msg: LaserScan):
+        '''
+        Callback for lidar messages.
+        '''
         try:
             min_distance = min(msg.ranges)
             # Ignore noisy readings that report 0.01 (assumed to be noise)
@@ -46,15 +56,24 @@ class DeadmanNode(Node):
             self.get_logger().error(f'Lidar error: {e}')
 
     def joy_callback(self, msg: String):
+        '''
+        Callback for custom joy node messages.
+        '''
         try:
             self.joy_state = json.loads(msg.data)
         except Exception as e:
             self.get_logger().error(f'JSON parse error in joy_callback: {e}')
 
     def llm_callback(self, msg: Twist):
+        '''
+        Callback for LLM command messages.
+        '''
         self.latest_llm_cmd = msg
 
     def publish_command(self):
+        '''
+        Publishes the final command based on joystick input and safety checks.
+        '''
         final_cmd = Twist()  # Default command (STOP)
 
         # Safety override: if an obstacle is too close, always stop.
@@ -84,34 +103,29 @@ class DeadmanNode(Node):
         hat_y = axes.get('ABS_HAT0Y', 0)  # Forward (-1), Reverse (1), Neutral (0)
         hat_x = axes.get('ABS_HAT0X', 0)  # Left (-1), Right (1), Neutral (0)
 
-        FORWARD_SPEED = 0.5
-        REVERSE_SPEED = -0.5
-        TURN_LEFT_SPEED = 0.5
-        TURN_RIGHT_SPEED = -0.5
-
         linear_speed = 0.0
         angular_speed = 0.0
 
         # Forward / Reverse logic
         if hat_y == -1:  # Forward (Up on D-pad)
-            linear_speed = FORWARD_SPEED
+            linear_speed = self.max_forward_speed
         elif hat_y == 1:  # Reverse (Down on D-pad)
-            linear_speed = REVERSE_SPEED
+            linear_speed = self.max_reverse_speed
 
         # Left / Right logic
         if hat_x == -1:  # Left (Left on D-pad)
-            angular_speed = TURN_LEFT_SPEED
+            angular_speed = self.max_turn_left_speed
         elif hat_x == 1:  # Right (Right on D-pad)
-            angular_speed = TURN_RIGHT_SPEED
+            angular_speed = self.max_turn_right_speed
 
         # If any directional button is pressed, use that command.
         command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
 
         if command_active != self.previous_command_active:
-            if command_active:
-                self.get_logger().info('Publishing UAV command from joystick buttons.')
-            else:
-                self.get_logger().info('No joystick button input; using LLM command.')
+            # if command_active:
+            #     self.get_logger().info('Publishing UAV command from joystick buttons.')
+            # else:
+            #     self.get_logger().info('No joystick button input; using LLM command.')
             self.previous_command_active = command_active
 
         if command_active:
