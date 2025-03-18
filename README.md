@@ -1,11 +1,11 @@
 USEFULL COMMANDS
 
 ```bash
-ls /dev/ttyUSB*
+sudo chmod 666 /dev/ttyUSB0
 ```
 
 ```bash
-sudo chmod 666 /dev/ttyUSB*
+sudo chmod 666 /dev/video0
 ```
 
 ```bash
@@ -17,9 +17,5 @@ sudo chmod 666 /dev/input/event*
 ```
 
 ```bash
-sudo chmod 666 /dev/dri/card1
-```
-
-```sh
-sudo chmod 666 /dev/dri
+sudo ip addr add 192.168.0.100/24 dev enp89s0
 ```

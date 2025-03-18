@@ -3,6 +3,7 @@ from ament_index_python.packages import get_package_share_directory
 from launch import LaunchDescription
 from launch.actions import IncludeLaunchDescription
 from launch.launch_description_sources import PythonLaunchDescriptionSource
+from launch_ros.actions import Node
 
 def generate_launch_description():
     # Locate uav_actual launch file (for real hardware)
@@ -16,9 +17,17 @@ def generate_launch_description():
     # Locate deadman_safety launch file
     deadman_safety_share = get_package_share_directory('deadman_safety')
     deadman_safety_launch = os.path.join(deadman_safety_share, 'launch', 'deadman_safety.launch.py')
+
+    custom_camera_node = Node(
+        package='deadman_safety',
+        executable='custom_camera_node',
+        name='custom_camera_node',
+        output='screen'
+    )
     
     return LaunchDescription([
         IncludeLaunchDescription(PythonLaunchDescriptionSource(uav_actual_launch)),
         IncludeLaunchDescription(PythonLaunchDescriptionSource(llm_integration_launch)),
-        IncludeLaunchDescription(PythonLaunchDescriptionSource(deadman_safety_launch))
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(deadman_safety_launch)),
+        custom_camera_node,
     ])

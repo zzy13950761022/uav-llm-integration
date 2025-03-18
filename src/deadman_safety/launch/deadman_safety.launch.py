@@ -17,4 +17,4 @@ def generate_launch_description():
         output='screen'
     )
 
-    return LaunchDescription([deadman_node, custom_joy_node])
+    return LaunchDescription([deadman_node, custom_joy_node,])

@@ -76,63 +76,45 @@ class DeadmanNode(Node):
         '''
         final_cmd = Twist()  # Default command (STOP)
 
-        # Safety override: if an obstacle is too close, always stop.
+        # If obstacle is too close, always stop.
         if self.too_close:
             self.cmd_pub.publish(final_cmd)
             return
 
         # Check deadman switch using custom joy node JSON.
-        # For the PS4 controller, expect L1 (KEY_310) and R1 (KEY_311) to be the deadman.
         buttons = self.joy_state.get('buttons', {})
         axes = self.joy_state.get('axes', {})
         deadman_pressed = (buttons.get('KEY_310', 0) == 1 and buttons.get('KEY_311', 0) == 1)
 
-        if deadman_pressed != self.previous_deadman_state:
-            if deadman_pressed:
-                self.get_logger().info('Deadman switch engaged.')
+        # If the deadman switch is engaged, process joystick inputs.
+        if deadman_pressed:
+            hat_y = axes.get('ABS_HAT0Y', 0)  # Forward (-1), Reverse (1), Neutral (0)
+            hat_x = axes.get('ABS_HAT0X', 0)  # Left (-1), Right (1), Neutral (0)
+
+            linear_speed = 0.0
+            angular_speed = 0.0
+
+            if hat_y == -1:  # Forward
+                linear_speed = self.max_forward_speed
+            elif hat_y == 1:  # Reverse
+                linear_speed = self.max_reverse_speed
+
+            if hat_x == -1:  # Left
+                angular_speed = self.max_turn_left_speed
+            elif hat_x == 1:  # Right
+                angular_speed = self.max_turn_right_speed
+
+            if abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01:
+                final_cmd.linear.x = linear_speed
+                final_cmd.angular.z = angular_speed
             else:
-                self.get_logger().info('Deadman switch not engaged. Stopping UAV.')
-            self.previous_deadman_state = deadman_pressed
-
-        if not deadman_pressed:
-            self.cmd_pub.publish(final_cmd)
-            return
-
-        # Determine directional command from buttons.
-        # Read D-pad (Hat Switch) values
-        hat_y = axes.get('ABS_HAT0Y', 0)  # Forward (-1), Reverse (1), Neutral (0)
-        hat_x = axes.get('ABS_HAT0X', 0)  # Left (-1), Right (1), Neutral (0)
-
-        linear_speed = 0.0
-        angular_speed = 0.0
-
-        # Forward / Reverse logic
-        if hat_y == -1:  # Forward (Up on D-pad)
-            linear_speed = self.max_forward_speed
-        elif hat_y == 1:  # Reverse (Down on D-pad)
-            linear_speed = self.max_reverse_speed
-
-        # Left / Right logic
-        if hat_x == -1:  # Left (Left on D-pad)
-            angular_speed = self.max_turn_left_speed
-        elif hat_x == 1:  # Right (Right on D-pad)
-            angular_speed = self.max_turn_right_speed
-
-        # If any directional button is pressed, use that command.
-        command_active = (abs(linear_speed) > 0.01 or abs(angular_speed) > 0.01)
-
-        if command_active != self.previous_command_active:
-            # if command_active:
-            #     self.get_logger().info('Publishing UAV command from joystick buttons.')
-            # else:
-            #     self.get_logger().info('No joystick button input; using LLM command.')
-            self.previous_command_active = command_active
-
-        if command_active:
-            final_cmd.linear.x = linear_speed
-            final_cmd.angular.z = angular_speed
+                final_cmd = self.latest_llm_cmd
         else:
-            final_cmd = self.latest_llm_cmd
+            # If deadman switch is not pressed but there's a non-zero LLM command, use it.
+            if abs(self.latest_llm_cmd.linear.x) > 0.01 or abs(self.latest_llm_cmd.angular.z) > 0.01:
+                final_cmd = self.latest_llm_cmd
+            else:
+                final_cmd = Twist()  # Ensure it's STOP if no valid command exists.
 
         self.cmd_pub.publish(final_cmd)
 
