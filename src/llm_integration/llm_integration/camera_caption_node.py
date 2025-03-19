@@ -65,21 +65,17 @@ class CameraCaptionNode(Node):
         # Define HSV color ranges (red uses two ranges) and corresponding BGR values
         color_ranges = {
             'red': [((0, 100, 100), (10, 255, 255)), ((160, 100, 100), (180, 255, 255))],
-            'orange': [((10, 100, 100), (25, 255, 255))],
             'blue': [((100, 150, 0), (140, 255, 255))],
             'green': [((40, 70, 70), (80, 255, 255))],
             'yellow': [((20, 100, 100), (30, 255, 255))],
             'purple': [((130, 50, 50), (160, 255, 255))],
-            'cyan': [((80, 100, 100), (100, 255, 255))]
         }
         color_bgr = {
             'red': (0, 0, 255),
-            'orange': (0, 165, 255),
             'blue': (255, 0, 0),
             'green': (0, 255, 0),
             'yellow': (0, 255, 255),
             'purple': (128, 0, 128),
-            'cyan': (255, 255, 0)
         }
         # Minimum area to filter out noise
         area_threshold = self.threshold
