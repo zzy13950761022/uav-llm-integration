@@ -4,19 +4,6 @@
 FROM ubuntu:24.04 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
 
-# These build arguments are needed for the launch file but aren’t baked into the image here
-ARG SAFETY_STOP_DISTANCE
-ARG MAX_FORWARD_SPEED
-ARG MAX_REVERSE_SPEED
-ARG MAX_TURN_LEFT_SPEED
-ARG MAX_TURN_RIGHT_SPEED
-ARG AREA_THRESHOLD
-ARG LLM_URL
-ARG LLM_MODEL
-ARG LLM_TEMPERATURE
-ARG LLM_API_INTERVAL
-ARG LLM_PAUSE
-
 ########################################
 # Install OS Dependencies & Tools
 ########################################
