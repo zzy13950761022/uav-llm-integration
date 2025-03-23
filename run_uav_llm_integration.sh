@@ -12,11 +12,14 @@ if [ ! -f "$ENV_FILE" ]; then
     exit 1
 fi
 
-# Check if a joystick is detected
+# Linux: Check if a joystick is detected
 if [ ! -e "/dev/input/js0" ]; then
     echo "Error: No joystick detected! Please connect a controller before launching."
     exit 1
 fi
+
+# Allow Docker access to the X server for GUI applications
+xhost +local:docker
 
 # Remove any existing container with the same name
 if [ "$(docker ps -a -q -f name=$CONTAINER_NAME)" ]; then
@@ -39,23 +42,20 @@ export $(grep -v '^#' $ENV_FILE | xargs)
 # Build the Docker image while passing in all necessary build arguments
 echo "Building Docker image: $IMAGE_NAME"
 docker build \
-  --build-arg SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
-  --build-arg MAX_FORWARD_SPEED=${MAX_FORWARD_SPEED} \
-  --build-arg MAX_REVERSE_SPEED=${MAX_REVERSE_SPEED} \
-  --build-arg MAX_TURN_LEFT_SPEED=${MAX_TURN_LEFT_SPEED} \
-  --build-arg MAX_TURN_RIGHT_SPEED=${MAX_TURN_RIGHT_SPEED} \
-  --build-arg AREA_THRESHOLD=${AREA_THRESHOLD} \
-  --build-arg LLM_URL=${LLM_URL} \
-  --build-arg LLM_MODEL=${LLM_MODEL} \
-  --build-arg LLM_TEMPERATURE=${LLM_TEMPERATURE} \
-  --build-arg LLM_API_INTERVAL=${LLM_API_INTERVAL} \
-  --build-arg LLM_PAUSE=${LLM_PAUSE} \
-  -t $IMAGE_NAME .
+    --build-arg SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
+    --build-arg MAX_FORWARD_SPEED=${MAX_FORWARD_SPEED} \
+    --build-arg MAX_REVERSE_SPEED=${MAX_REVERSE_SPEED} \
+    --build-arg MAX_TURN_LEFT_SPEED=${MAX_TURN_LEFT_SPEED} \
+    --build-arg MAX_TURN_RIGHT_SPEED=${MAX_TURN_RIGHT_SPEED} \
+    --build-arg AREA_THRESHOLD=${AREA_THRESHOLD} \
+    --build-arg LLM_URL=${LLM_URL} \
+    --build-arg LLM_MODEL=${LLM_MODEL} \
+    --build-arg LLM_TEMPERATURE=${LLM_TEMPERATURE} \
+    --build-arg LLM_API_INTERVAL=${LLM_API_INTERVAL} \
+    --build-arg LLM_PAUSE=${LLM_PAUSE} \
+    -t $IMAGE_NAME .
 
-# Allow Docker access to the X server for GUI applications
-xhost +local:docker
-
-# Run the container
+# Run the Docker container
 echo "Running the Docker container..."
 docker run -it --rm \
     --name $CONTAINER_NAME \
