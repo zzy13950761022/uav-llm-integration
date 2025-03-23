@@ -23,7 +23,7 @@ class LLMNode(Node):
         self.llm_pause = float(os.environ.get('LLM_PAUSE', 2.5))
 
         # Load the prompt from a text file in the project root.
-        self.prompt_template = self.load_prompt_from_file('uav-llm-integration/prompt.txt')
+        self.prompt_template = self.load_prompt_from_file('uav-llm-integration/setup_prompt.txt')
 
         # Initialize variables for tracking state
         self.last_api_time = 0.0
