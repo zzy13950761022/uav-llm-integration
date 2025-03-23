@@ -8,4 +8,4 @@ You may only change linear or angular, not both.\n
 Maximum value for linear is {max_linear_speed} m/s.\n
 Maximum value for angular is {max_angular_speed} rad/s.\n
 Negative angular values are clockwise.\n
-If desired object is not in field of view, rotate clockwise.\n
+If target is not in field of view, rotate with positive angular value.\n
