@@ -124,9 +124,19 @@ class LLMNode(Node):
         if not force and (current_time - self.last_api_time < self.api_interval):
             return
 
-        # Construct the prompt including both the user command and image caption.
+        # Retrieve maximum speeds from the environment.
+        max_linear_speed = os.environ.get('MAX_FORWARD_SPEED', '0.5')
+        # For angular speed, you can choose one value (e.g., left turning speed) or calculate the absolute value.
+        max_angular_speed = os.environ.get('MAX_TURN_LEFT_SPEED', '0.25')
+
+        # Construct the prompt including both the user command, image caption, and maximum speed values.
         if self.prompt_template:
-            prompt = self.prompt_template.format(latest_text=self.latest_text, latest_caption=self.latest_caption)
+            prompt = self.prompt_template.format(
+                latest_text=self.latest_text,
+                latest_caption=self.latest_caption,
+                max_linear_speed=max_linear_speed,
+                max_angular_speed=max_angular_speed
+            )
         else:
             prompt = (
                 f'User command: {self.latest_text}\n'
@@ -136,7 +146,8 @@ class LLMNode(Node):
                 f'If desired object is stated in caption to be either left or right, turn first.\n'
                 f'If desired object is stated in caption to be center, drive towards.\n'
                 f'You may only change linear or angular, not both.\n'
-                f'Maximum value for linear or angular is 0.5 m/s.\n'
+                f'Maximum value for linear is {max_linear_speed} m/s.\n'
+                f'Maximum value for angular is {max_angular_speed} rad/s.\n'
                 f'Negative angular values are clockwise.\n'
                 f'If desired object is not in field of view, rotate clockwise.\n'
             )
