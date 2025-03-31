@@ -1,6 +1,6 @@
 # uav-llm-integration
 
-**Conan Dewitt (22877792) [GitHub](https://github.com/Ayodhya27)**
+**Conan Dewitt (22877792) [GitHub](https://github.com/conanpodewitt)**
 
 This project integrates unmanned autonomous vehicles (UAVs) with large language model (LLM) capabilities, enhancing operator-machine interaction through intelligent decision-making and real-time data analysis. The repository contains a ROS2 project that can be run in either pure simulation mode, or live demonstration mode - onboard a Pioneer 3AT, providing a robust framework for UAV control and experimentation.
 
@@ -54,7 +54,13 @@ Check what index the usb serial controller is (Pionner 3AT drivetrain control).
 ls /dev/ttyUSB*
 ```
 
-Allocate the LiDAR an address
+Give it permission to communicate;
+
+```bash
+sudo chmod 666 /dev/ttyUSB*
+```
+
+Allocate the LiDAR an address.
 
 ```bash
 sudo ip addr add 192.168.0.100/24 dev enp89s0
