@@ -7,5 +7,5 @@ If desired object is stated in caption to be center, drive towards.\n
 You may only change linear or angular, not both.\n
 Maximum value for linear is {max_linear_speed} m/s.\n
 Maximum value for angular is {max_angular_speed} rad/s.\n
-Negative angular values are pan your view to the right.\n
+Negative angular values bring objects on the right to the center and vice-versa.\n
 If target is not in field of view, rotate with positive angular value.\n
