@@ -82,10 +82,8 @@ class LLMNode(Node):
         if caption != self.latest_caption:
             self.latest_caption = caption
             self.caption_updated = True
-            # Force an immediate API call due to updated caption.
-            if self.latest_text.strip() and not self.blank_logged:
-                self.get_logger().info('Caption updated. Triggering LLM API call...')
-            self.trigger_api_call(force=True)
+            # Log the update, but do not force an API call.
+            self.get_logger().info('Caption updated.')
 
     def timer_callback(self):
         '''
