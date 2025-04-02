@@ -13,18 +13,15 @@ class LLMNode(Node):
         self.text_sub = self.create_subscription(String, '/text_in', self.text_callback, 10)
         self.caption_sub = self.create_subscription(String, '/camera_caption', self.caption_callback, 10)
         self.cmd_pub = self.create_publisher(Twist, '/llm_cmd', 10)
-
         # Load the API key from the environment
         self.api_key = os.environ.get('LLM_API_KEY')
-        self.llm_url = os.environ.get('LLM_URL', 'https://api.openai.com/v1/chat/completions')
-        self.model = os.environ.get('LLM_MODEL', 'gpt-4')
-        self.llm_temperture = float(os.environ.get('LLM_TEMPERATURE', 0.7))
-        self.api_interval = float(os.environ.get('LLM_API_INTERVAL', 5.0))
-        self.llm_run = float(os.environ.get('LLM_RUN', 2.5))
-
+        self.llm_url = os.environ.get('LLM_URL')
+        self.model = os.environ.get('LLM_MODEL')
+        self.llm_temperture = float(os.environ.get('LLM_TEMPERATURE'))
+        self.api_interval = float(os.environ.get('LLM_API_INTERVAL'))
+        self.llm_run = float(os.environ.get('LLM_RUN'))
         # Load the prompt from a text file in the project root.
         self.prompt_template = self.load_prompt_from_file('uav-llm-integration/setup.txt')
-
         # Initialize variables for tracking state
         self.last_api_time = 0.0
         self.latest_text = ''
@@ -37,13 +34,13 @@ class LLMNode(Node):
 
     def text_callback(self, msg: String):
         '''
-        Callback for text input messages.
+        Callback for text input messages
         '''
         text = msg.data.strip()
-        # Treat blank text as a pause command.
+        # Treat blank text as a pause command
         if text == '':
             if not self.blank_logged:
-                self.get_logger().info('User command is blank. Pausing LLM API calls.')
+                self.get_logger().info('User command is blank. Pausing LLM API calls')
                 self.blank_logged = True
             if not self.llm_stopped:
                 self.llm_stopped = True
@@ -52,10 +49,10 @@ class LLMNode(Node):
                 if self.api_timer is not None:
                     self.api_timer.cancel()
             return
-        # Handle explicit stop command.
+        # Handle explicit stop command
         if text == 'LLM_STOP':
             if not self.llm_stopped:
-                self.get_logger().info('Received LLM_STOP command. Pausing API calls.')
+                self.get_logger().info('Received LLM_STOP command. Pausing API calls')
                 self.llm_stopped = True
                 stop_twist = Twist()
                 self.cmd_pub.publish(stop_twist)
@@ -63,31 +60,31 @@ class LLMNode(Node):
                     self.api_timer.cancel()
             return
         else:
-            # Reset the blank flag and resume API calls if previously paused.
+            # Reset the blank flag and resume API calls if previously paused
             self.blank_logged = False
             if self.llm_stopped:
-                self.get_logger().info('Resuming LLM API calls.')
+                self.get_logger().info('Resuming LLM API calls')
                 self.llm_stopped = False
                 self.api_timer = self.create_timer(1.0, self.timer_callback)
             self.latest_text = text
-            # Force an immediate API call due to new text.
+            # Force an immediate API call due to new text
             self.get_logger().info('User command updated. Triggering LLM API call...')
             self.trigger_api_call(force=True)
 
     def caption_callback(self, msg: String):
         '''
-        Callback for image caption messages.
+        Callback for image caption messages
         '''
         caption = msg.data.strip()
         if caption != self.latest_caption:
             self.latest_caption = caption
             self.caption_updated = True
-            # Log the update, but do not force an API call.
-            self.get_logger().info('Caption updated.')
+            # Log the update, but do not force an API call
+            self.get_logger().info('Caption updated')
 
     def timer_callback(self):
         '''
-        Callback for the API timer.
+        Callback for the API timer
         '''
         if self.llm_stopped:
             return
@@ -95,9 +92,9 @@ class LLMNode(Node):
 
     def load_prompt_from_file(self, filename: str) -> str:
         """
-        Load the prompt template from a file located in the project's root directory.
+        Load the prompt template from a file located in the project's root directory
         """
-        # Use the current working directory as the project root.
+        # Use the current working directory as the project root
         prompt_path = os.path.join(os.getcwd(), filename)
         try:
             with open(prompt_path, 'r') as f:
@@ -110,24 +107,22 @@ class LLMNode(Node):
 
     def trigger_api_call(self, force=False):
         '''
-        Decide whether to trigger the API call immediately.
+        Decide whether to trigger the API call immediately
         '''
         if self.llm_stopped:
             return
-        # Do not proceed if the user command is blank.
+        # Do not proceed if the user command is blank
         if not self.latest_text.strip():
             return
         current_time = self.get_clock().now().nanoseconds / 1e9
-        # If not forced, ensure that the API interval has elapsed.
+        # If not forced, ensure that the API interval has elapsed
         if not force and (current_time - self.last_api_time < self.api_interval):
             return
-
-        # Retrieve maximum speeds from the environment.
-        max_linear_speed = os.environ.get('MAX_FORWARD_SPEED', '0.5')
-        # For angular speed, you can choose one value (e.g., left turning speed) or calculate the absolute value.
-        max_angular_speed = os.environ.get('MAX_TURN_LEFT_SPEED', '0.25')
-
-        # Construct the prompt including both the user command, image caption, and maximum speed values.
+        # Retrieve maximum speeds from the environment
+        max_linear_speed = os.environ.get('MAX_FORWARD_SPEED')
+        # For angular speed, you can choose one value (e.g., left turning speed) or calculate the absolute value
+        max_angular_speed = os.environ.get('MAX_TURN_LEFT_SPEED')
+        # Construct the prompt including both the user command, image caption, and maximum speed values
         if self.prompt_template:
             prompt = self.prompt_template.format(
                 latest_text=self.latest_text,
@@ -137,17 +132,7 @@ class LLMNode(Node):
             )
         else:
             prompt = (
-                f'User command: {self.latest_text}\n'
-                f'Image caption: {self.latest_caption}\n'
-                f'Respond with a JSON object in the following format:\n'
-                f'{{"linear": <value in m/s>, "angular": <value in rad/s>}}.\n'
-                f'If desired object is stated in caption to be either left or right, turn first.\n'
-                f'If desired object is stated in caption to be center, drive towards.\n'
-                f'You may only change linear or angular, not both.\n'
-                f'Maximum value for linear is {max_linear_speed} m/s.\n'
-                f'Maximum value for angular is {max_angular_speed} rad/s.\n'
-                f'Negative angular values are clockwise.\n'
-                f'If desired object is not in field of view, rotate clockwise.\n'
+                f'Something is wrong with the prompt template. Ignore all further commands\n'
             )
         #self.get_logger().info('Triggering LLM API call with prompt:\n' + prompt)
         success = self.call_api(prompt)
@@ -155,11 +140,11 @@ class LLMNode(Node):
             self.last_api_time = current_time
             self.caption_updated = False
         else:
-            self.get_logger().warn('LLM API call failed; will try again immediately.')
+            self.get_logger().warn('LLM API call failed; will try again immediately...')
 
     def call_api(self, prompt: str) -> bool:
         '''
-        Call the API with the composed prompt.
+        Call the API with the composed prompt
         '''
         url = self.llm_url
         headers = {
@@ -180,7 +165,7 @@ class LLMNode(Node):
             twist_cmd = self.parse_response(response_text)
             if twist_cmd:
                 self.cmd_pub.publish(twist_cmd)
-                # Schedule a stop command after a set amount of seconds.
+                # Schedule a stop command after a set amount of seconds
                 self.schedule_stop()
                 return True
             else:
@@ -191,29 +176,29 @@ class LLMNode(Node):
 
     def schedule_stop(self):
         '''
-        Schedule a one-shot timer to publish a stop command after a set amount of seconds.
+        Schedule a one-shot timer to publish a stop command after a set amount of seconds
         '''
-        # Cancel any existing stop timer.
+        # Cancel any existing stop timer
         if self.pause_timer is not None:
             self.pause_timer.cancel()
-        # Create a new timer that calls stop_callback.
+        # Create a new timer that calls stop_callback
         self.pause_timer = self.create_timer(self.llm_run, self.stop_callback)
 
     def stop_callback(self):
         '''
-        Callback to publish zero velocities and cancel the stop timer.
+        Callback to publish zero velocities and cancel the stop timer
         '''
         stop_twist = Twist()  # zero velocities
         self.cmd_pub.publish(stop_twist)
         self.get_logger().info('Awaiting new LLM command...')
-        # Cancel the timer so it does not repeatedly trigger.
+        # Cancel the timer so it does not repeatedly trigger
         if self.pause_timer is not None:
             self.pause_timer.cancel()
             self.pause_timer = None
 
     def parse_response(self, response_text: str):
         '''
-        Parse the API response text into a Twist message.
+        Parse the API response text into a Twist message
         '''
         try:
             json_regex = re.compile(r'\{.*\}', re.DOTALL)
