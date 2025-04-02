@@ -1,23 +1,42 @@
 #!/bin/bash
 
-# Define variables
+########################################
+# Requirements
+########################################
+# Ensure the script is executed on a Linux machine
+if [[ "$(uname -s)" != "Linux" ]]; then
+    echo "Error: This script can only be executed on a Linux machine. Aborting."
+    exit 1
+fi
+
+# Define Docker image and container names
 IMAGE_NAME="uav-llm-integration"
 CONTAINER_NAME="uav-llm-integration-container"
+
+# Define environment configuration files
 CONF_FILE=".env.conf"
 ENV_FILE=".env"
 
-# Check if the .env file exists
+# Ensure the required environment files exist
 if [ ! -f "$ENV_FILE" ]; then
-    echo "Error: .env file not found! Aborting."
+    echo "Error: Missing .env file (contains LLM_API_KEY). Aborting."
     exit 1
 fi
 
-# Linux: Check if a joystick is detected
+if [ ! -f "$CONF_FILE" ]; then
+    echo "Error: Missing .env.conf file (contains configuration variables). Aborting."
+    exit 1
+fi
+
+# Check if a joystick is connected
 if [ ! -e "/dev/input/js0" ]; then
-    echo "Error: No joystick detected! Please connect a controller before launching."
+    echo "Error: No joystick detected. Please connect a controller before launching."
     exit 1
 fi
 
+########################################
+# Docker Setup
+########################################
 # Allow Docker access to the X server for GUI applications
 xhost +local:docker
 
@@ -33,13 +52,15 @@ if [ "$(docker images -q $IMAGE_NAME)" ]; then
     docker rmi -f $IMAGE_NAME
 fi
 
-# Load variables from $CONF_FILE
+# Load configuration variables from the .env.conf file
 export $(grep -v '^#' $CONF_FILE | xargs)
 
-# Load the API key from $ENV_FILE
+# Load API key and other environment variables from the .env file
 export $(grep -v '^#' $ENV_FILE | xargs)
 
-# Build the Docker image while passing in all necessary build arguments
+########################################
+# Build the Docker image
+########################################
 echo "Building Docker image: $IMAGE_NAME"
 docker build \
     --build-arg SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
@@ -52,10 +73,12 @@ docker build \
     --build-arg LLM_MODEL=${LLM_MODEL} \
     --build-arg LLM_TEMPERATURE=${LLM_TEMPERATURE} \
     --build-arg LLM_API_INTERVAL=${LLM_API_INTERVAL} \
-    --build-arg LLM_PAUSE=${LLM_PAUSE} \
+    --build-arg LLM_RUN=${LLM_RUN} \
     -t $IMAGE_NAME .
 
+########################################
 # Run the Docker container
+########################################
 echo "Running the Docker container..."
 docker run -it --rm \
     --name $CONTAINER_NAME \
@@ -72,5 +95,8 @@ docker run -it --rm \
     --privileged \
     $IMAGE_NAME
 
-# Reset X server access
+########################################
+# Cleanup
+########################################
+# Reset X server access after container exits
 xhost -local:docker
