@@ -9,11 +9,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 ########################################
 RUN apt-get update && apt-get install -y \
     curl \
-    gnupg2 \
-    lsb-release \
-    sudo \
-    software-properties-common \
-    usbutils \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 ########################################
@@ -43,7 +39,6 @@ RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
     ros-jazzy-ros-gz-sim \
     ros-jazzy-ros-gz-bridge \
-    ros-jazzy-xacro \
     ros-jazzy-joint-state-publisher \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-rviz2 \
@@ -51,16 +46,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 ########################################
-# Install Python & Additional Packages
+# Install Additional Packages
 ########################################
-RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages evdev numpy opencv-python requests torch transformers
 
 # Set shared cache location for Hugging Face models
 ENV HF_HOME=/home/pioneer-container/.cache/huggingface
 
 ########################################
-# Install Build Tools and Build AriaCoda
+# Install and Build AriaCoda
 ########################################
 RUN apt-get update && apt-get install -y \
     git \
@@ -120,7 +114,7 @@ FROM builder
 ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
 ENV XDG_RUNTIME_DIR=/tmp/runtime-pioneer-container
 
-# Now move the dynamic environment variables to the end.
+# Set variables
 ARG SAFETY_STOP_DISTANCE
 ARG MAX_FORWARD_SPEED
 ARG MAX_REVERSE_SPEED
@@ -131,7 +125,7 @@ ARG LLM_URL
 ARG LLM_MODEL
 ARG LLM_TEMPERATURE
 ARG LLM_API_INTERVAL
-ARG LLM_PAUSE
+ARG LLM_RUN
 ENV SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
     MAX_FORWARD_SPEED=${MAX_FORWARD_SPEED} \
     MAX_REVERSE_SPEED=${MAX_REVERSE_SPEED} \
@@ -142,7 +136,7 @@ ENV SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
     LLM_MODEL=${LLM_MODEL} \
     LLM_TEMPERATURE=${LLM_TEMPERATURE} \
     LLM_API_INTERVAL=${LLM_API_INTERVAL} \
-    LLM_PAUSE=${LLM_PAUSE}
+    LLM_RUN=${LLM_RUN}
 
 # Set the default entrypoint to bash
 ENTRYPOINT ["/bin/bash"]

@@ -20,7 +20,7 @@ class LLMNode(Node):
         self.model = os.environ.get('LLM_MODEL', 'gpt-4')
         self.llm_temperture = float(os.environ.get('LLM_TEMPERATURE', 0.7))
         self.api_interval = float(os.environ.get('LLM_API_INTERVAL', 5.0))
-        self.llm_pause = float(os.environ.get('LLM_PAUSE', 2.5))
+        self.llm_run = float(os.environ.get('LLM_RUN', 2.5))
 
         # Load the prompt from a text file in the project root.
         self.prompt_template = self.load_prompt_from_file('uav-llm-integration/setup_prompt.txt')
@@ -197,7 +197,7 @@ class LLMNode(Node):
         if self.pause_timer is not None:
             self.pause_timer.cancel()
         # Create a new timer that calls stop_callback.
-        self.pause_timer = self.create_timer(self.llm_pause, self.stop_callback)
+        self.pause_timer = self.create_timer(self.llm_run, self.stop_callback)
 
     def stop_callback(self):
         '''
