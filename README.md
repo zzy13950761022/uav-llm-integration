@@ -2,7 +2,7 @@
 
 **Conan Dewitt (22877792) [GitHub](https://github.com/conanpodewitt)**
 
-This project integrates unmanned autonomous vehicles (UAVs) with large language model (LLM) capabilities, enhancing operator-machine interaction through intelligent decision-making and real-time data analysis. The repository contains a ROS2 project that can be run in either pure simulation mode, or live demonstration mode - onboard a Pioneer 3AT, providing a robust framework for UAV control and experimentation.
+This project integrates unmanned autonomous vehicles (UAVs) with large language model (LLM) capabilities, enhancing operator-machine interaction through intelligent decision-making and real-time data analysis. The repository contains a ROS 2 project that can be run in either pure simulation mode or live demonstration mode on a Pioneer 3AT, providing a robust framework for UAV control and experimentation.
 
 ## Installation
 
@@ -10,76 +10,71 @@ This project integrates unmanned autonomous vehicles (UAVs) with large language 
 
 ### Running the Project
 
-Ensure that Docker is installed and a DualShock 4 controller is connected (wired or wireless) before using the run script. An OpenAI API key is also required for launch, and should be placed within an `.env` file under the `LLM_API_KEY=` variable.
-Note that this project has only been tested on Linux systems (As of 13/03/2025) and requires a moderately powerful system to run the simulation.
+Ensure that Docker is installed and a DualShock 4 controller is connected (wired or wireless) before using the run script. An OpenAI API key is also required for launch and should be placed within an `.env` file under the `LLM_API_KEY=` variable.
 
+> **Note:** This project has only been tested on Linux systems (as of 13/03/2025) and requires a moderately powerful system to run.
 
-Use the run script to build, and launch the container - this will take a while the first time:
+Use the run script to build and launch the container — this will take some time on the first run:
 
 ```bash
-./run_uav_llm_integration.sh
+./run.sh
 ```
 
-If you don't have access to a DualShock 4 controller, you can bypass this requirement by commenting out lines 23 - 30 (As of 13/03/2025).
+If you don't have a DualShock 4 controller, you can simply disable the check by commenting out lines 31-35 in the script (as of 02/04/2025). Note that while this change prevents teleoperation on a Pioneer 3AT, you can still control the simulated robot via Gazebo.
 
+### Simulation
 
-Unless you have access to a Pioneer 3AT UAV, it can be assumed you will be running this project exclusively in simulation mode. The simulation can be started with:
+Unless you have access to a Pioneer 3AT UAV, it is assumed that you will be running this project exclusively in simulation mode. The simulation can be started with:
 
 ```bash
 ros2 launch master_launch sim.launch.py
 ```
 
-Pressing up right after launch, the start of the launch command will populate your terminal for you.
+Pressing the up arrow (`↑`) right after launch will populate the terminal with a partially completed launch command.
 
-### Running on a Pioneer
+### Pioneer 3AT
 
-If you do have access to a Pioneer, you can instead use:
+If you have access to a Pioneer 3AT, you can launch the project on the actual hardware using:
 
 ```bash
 ros2 launch master_launch actual.launch.py
 ```
 
-Which will launch this project on the actual Pioneer hardware instead of within a simulation.
+This will start the system on the real Pioneer instead of in simulation.
 
 ### Known Issues
 
-- If you have any issues with communication between the Docker Container and connected hardware, check the Useful Commands section for permission passthroughs.
-- During the first launch of the simulation, after a fresh build, you might find that the dummy instance of Gazebo won't render in properly and doesnt close itself, thus, you can safely close the dummy instance yourself. The dummy instance was implemented as workaround to fix the issue of the actual Gazebo instance not launching properly upon loading a fresh build.
+If you experience communication issues between the Docker container and connected hardware, check the [Useful Commands](#useful-commands) section for permission passthroughs.
+- On the initial simulation launch following a fresh build, Gazebo may not render correctly — simply restart the container to resolve the issue.
 
-### Useful Commands
+## Useful Commands
 
-Check what index the usb serial controller is (Pionner 3AT drivetrain control).
-
+### Check USB Serial Connection (Pioneer 3AT drivetrain control)
 ```bash
 ls /dev/ttyUSB*
 ```
 
-Give it permission to communicate;
-
+### Grant Permission for USB Serial Communication
 ```bash
 sudo chmod 666 /dev/ttyUSB*
 ```
 
-Allocate the LiDAR an address.
-
+### Assign an IP Address to the LiDAR
 ```bash
 sudo ip addr add 192.168.0.100/24 dev enp89s0
 ```
 
-Allow the webcam to communicate with the container.
-
+### Allow Webcam Communication with the Container
 ```bash
 sudo chmod 666 /dev/video0
 ```
 
-Check which event the DualShock 4 gamepad publishes to.
-
+### Check Which Event the DualShock 4 Controller Publishes To
 ```bash
 sudo evtest
 ```
 
-Enable the event to be read by the container (A DualShock 4 controller is exclusively scanner for by the code).
-
+### Enable Event Access for the DualShock 4 Controller
 ```bash
 sudo chmod 666 /dev/input/event*
 ```
