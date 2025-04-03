@@ -32,9 +32,8 @@ event_device=$(sudo evtest --list-devices 2>/dev/null | \
 awk 'BEGIN { RS=""; FS="\n" }
   /Wireless Controller/ && !/Touchpad/ && !/Motion Sensors/ {
     for (i=1; i<=NF; i++) {
-      if ($i ~ /\/dev\/input\/(event[0-9]+)/) {
-        match($i, /\/dev\/input\/(event[0-9]+)/, arr)
-        print arr[1]
+      if (match($i, /event[0-9]+/)) {
+        print substr($i, RSTART, RLENGTH)
         exit
       }
     }
