@@ -28,7 +28,8 @@ fi
 # List all input devices so the user can identify the DualShock 4 controller.
 echo "Listing all input devices with evtest:"
 echo "-----------------------------------------"
-sudo evtest --list-devices
+sudo timeout 1 evtest
+echo ""
 echo "-----------------------------------------"
 
 echo "Please review the above list to identify the event device for the DualShock 4 (Wireless Controller)"
