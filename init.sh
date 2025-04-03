@@ -29,14 +29,17 @@ echo "Searching for DualShock 4 (Wireless Controller) event device..."
 
 # Use evtest to list devices and process each device block
 event_device=$(sudo evtest --list-devices 2>/dev/null | \
-awk -v RS="" '
+awk 'BEGIN { RS=""; FS="\n" }
   /Wireless Controller/ && !/Touchpad/ && !/Motion Sensors/ {
-    if (match($0, /\/dev\/input\/(event[0-9]+)/, arr)) {
-      print arr[1]
-      exit
+    for (i=1; i<=NF; i++) {
+      if ($i ~ /\/dev\/input\/(event[0-9]+)/) {
+        match($i, /\/dev\/input\/(event[0-9]+)/, arr)
+        print arr[1]
+        exit
+      }
     }
-  }
-')
+  }'
+)
 
 # Check if the event device was found
 if [[ -n "$event_device" ]]; then
