@@ -166,7 +166,7 @@ class CameraCaptionNode(Node):
         if self.model is None or self.processor is None:
             self.load_model()
         if self.model is None or self.processor is None:
-            self.get_logger().error('Captioning model not available; skipping caption generation.')
+            self.get_logger().error('Captioning model not available; skipping caption generation')
             return
         try:
             # Generate caption using the BLIP model on the raw masked image
