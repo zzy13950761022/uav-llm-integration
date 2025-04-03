@@ -24,28 +24,25 @@ if sudo chmod 666 /dev/video0; then
     echo "Permissions updated for /dev/video0"
 fi
 
-# Identify the DualShock 4 controller event device.
+# Identify the DualShock 4 controller event device
 echo "Searching for DualShock 4 (Wireless Controller) event device..."
+found_device=""
 
-# Use evtest to list devices and process each device block
-event_device=$(sudo evtest --list-devices 2>/dev/null | \
-awk 'BEGIN { RS=""; FS="\n" }
-  /Wireless Controller/ && !/Touchpad/ && !/Motion Sensors/ {
-    for (i=1; i<=NF; i++) {
-      if (match($i, /event[0-9]+/)) {
-        print substr($i, RSTART, RLENGTH)
-        exit
-      }
-    }
-  }'
-)
+for device in /dev/input/event*; do
+    # Retrieve the device name
+    device_name=$(udevadm info --query=property --name="$device" 2>/dev/null | grep '^NAME=' | cut -d'=' -f2)
+    
+    if [[ "$device_name" == *"Wireless Controller"* ]]; then
+        found_device="$device"
+        echo "Found DualShock 4 device: $device ($device_name)"
+        break
+    fi
+done
 
-# Check if the event device was found
-if [[ -n "$event_device" ]]; then
-    device_path="/dev/input/$event_device"
-    echo "Found DualShock 4 device: $device_path"
-    sudo chmod 666 "$device_path"
-    echo "Permissions updated for $device_path."
+if [ -n "$found_device" ]; then
+    # Enable Event Access for the identified DualShock 4 Controller
+    sudo chmod 666 "$found_device"
+    echo "Permissions updated for $found_device"
 else
-    echo "DualShock 4 (Wireless Controller) device not found. Please run 'sudo evtest' manually to check device assignments."
+    echo "DualShock 4 (Wireless Controller) device not found. Please run 'sudo evtest' manually to check device assignments"
 fi
