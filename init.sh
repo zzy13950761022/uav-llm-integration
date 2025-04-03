@@ -27,14 +27,21 @@ fi
 # Identify the DualShock 4 controller event device.
 echo "Searching for DualShock 4 (Wireless Controller) event device..."
 
-# Run evtest and extract the correct event device
-event_device=$(sudo evtest --list-devices 2>/dev/null | awk -F'/' '/Wireless Controller/ {getline; print $NF}')
+# Use evtest to list devices and process each device block
+event_device=$(sudo evtest --list-devices 2>/dev/null | \
+awk -v RS="" '
+  /Wireless Controller/ && !/Touchpad/ && !/Motion Sensors/ {
+    if (match($0, /\/dev\/input\/(event[0-9]+)/, arr)) {
+      print arr[1]
+      exit
+    }
+  }
+')
 
+# Check if the event device was found
 if [[ -n "$event_device" ]]; then
     device_path="/dev/input/$event_device"
     echo "Found DualShock 4 device: $device_path"
-    
-    # Enable Event Access for the identified DualShock 4 Controller
     sudo chmod 666 "$device_path"
     echo "Permissions updated for $device_path."
 else
