@@ -5,7 +5,7 @@
 ########################################
 # Ensure the script is executed on a Linux machine
 if [[ "$(uname -s)" != "Linux" ]]; then
-    echo "Error: This script can only be executed on a Linux machine. Aborting."
+    echo "Error: This script can only be executed on a Linux machine. Aborting..."
     exit 1
 fi
 
@@ -19,18 +19,18 @@ ENV_FILE=".env"
 
 # Ensure the required environment files exist
 if [ ! -f "$ENV_FILE" ]; then
-    echo "Error: Missing .env file (contains LLM_API_KEY). Aborting."
+    echo "Error: Missing .env file (contains LLM_API_KEY). Aborting..."
     exit 1
 fi
 
 if [ ! -f "$CONF_FILE" ]; then
-    echo "Error: Missing .env.conf file (contains configuration variables). Aborting."
+    echo "Error: Missing .env.conf file (contains configuration variables). Aborting..."
     exit 1
 fi
 
 # Check if a joystick is connected
 if [ ! -e "/dev/input/js0" ]; then
-    echo "Error: No joystick detected. Please connect a controller before launching."
+    echo "Error: No joystick detected. Please connect a controller before launching. Aborting..."
     exit 1
 fi
 

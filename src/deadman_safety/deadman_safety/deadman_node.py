@@ -38,9 +38,9 @@ class DeadmanNode(Node):
             if new_too_close != self.too_close:
                 self.too_close = new_too_close
                 if self.too_close:
-                    self.get_logger().warn(f'Obstacle detected (min distance: {min_distance:.2f}m).')
+                    self.get_logger().warn(f'Obstacle detected (min distance: {min_distance:.2f}m)')
                 else:
-                    self.get_logger().info('Obstacle cleared.')
+                    self.get_logger().info('Obstacle cleared')
         except Exception as e:
             self.get_logger().error(f'Lidar error: {e}')
 

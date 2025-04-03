@@ -2,7 +2,7 @@
 <?xml-model href="http://download.ros.org/schema/package_format3.xsd" schematypens="http://www.w3.org/2001/XMLSchema"?>
 <package format="3">
   <name>master_launch</name>
-  <version>0.0.0</version>
+  <version>0.0.1</version>
   <description>Master launch package for entire system</description>
   <maintainer email="22877792@student.uwa.edu.au">Conan Po Dewitt</maintainer>
   <license>MIT License</license>

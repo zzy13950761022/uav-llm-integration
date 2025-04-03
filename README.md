@@ -49,14 +49,9 @@ If you experience communication issues between the Docker container and connecte
 
 ## Useful Commands
 
-### Check USB Serial Connection (Pioneer 3AT drivetrain control)
-```bash
-ls /dev/ttyUSB*
-```
-
 ### Grant Permission for USB Serial Communication
 ```bash
-sudo chmod 666 /dev/ttyUSB*
+sudo chmod 666 /dev/ttyUSB0
 ```
 
 ### Assign an IP Address to the LiDAR
