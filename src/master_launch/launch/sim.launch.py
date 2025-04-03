@@ -18,13 +18,7 @@ def generate_launch_description():
     deadman_safety_launch = os.path.join(deadman_safety_share, 'launch', 'deadman_safety.launch.py')
     
     return LaunchDescription([
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(uav_sim_launch)
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(llm_integration_launch)
-        ),
-        IncludeLaunchDescription(
-            PythonLaunchDescriptionSource(deadman_safety_launch)
-        )
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(uav_sim_launch)),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(llm_integration_launch)),
+        IncludeLaunchDescription(PythonLaunchDescriptionSource(deadman_safety_launch)),
     ])
