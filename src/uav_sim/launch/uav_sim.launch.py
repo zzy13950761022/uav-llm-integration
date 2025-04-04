@@ -9,46 +9,21 @@ def generate_launch_description():
     models_path = os.path.join(pkg_uav_sim, 'models')
     worlds_path = os.path.join(pkg_uav_sim, 'worlds')
     config_path = os.path.join(pkg_uav_sim, 'config')
-
-    # Launch a dummy instance of Gazebo to warm up the system.
-    dummy_gazebo = ExecuteProcess(
+    
+    # Start Gazebo simulation immediately
+    gz_sim = ExecuteProcess(
         cmd=[
             'gz', 'sim', '-r', os.path.join(worlds_path, 'world.sdf'),
             '--gui-config', os.path.join(config_path, 'gaz.config'),
+            # '--render-engine', 'ogre2'
         ],
         output='screen'
-    )
-
-    # Shutdown dummy Gazebo after 3 seconds.
-    shutdown_dummy = TimerAction(
-        period=3.0,
-        actions=[
-            ExecuteProcess(
-                cmd=['pkill', '-f', 'gz sim'],
-                output='screen'
-            )
-        ]
-    )
-    
-    # Launch the real Gazebo simulation after a short delay
-    gz_sim = TimerAction(
-        period=4.0,
-        actions=[
-            ExecuteProcess(
-                cmd=[
-                    'gz', 'sim', '-r', os.path.join(worlds_path, 'world.sdf'),
-                    '--gui-config', os.path.join(config_path, 'gaz.config'),
-                    # '--render-engine', 'ogre2'
-                ],
-                output='screen'
-            )
-        ]
     )
     
     # Launch static transform publisher (without sim time) after 1 second delay
     # This publishes a constant transform from 'laser_frame' to 'pioneer/base_link/gpu_lidar'
     static_tf_lidar = TimerAction(
-        period=5.0,
+        period=1.0,
         actions=[
             Node(
                 package='tf2_ros',
@@ -67,7 +42,7 @@ def generate_launch_description():
     
     # Spawn the robot entity in Gazebo after a relative 2-second delay
     spawn_entity = TimerAction(
-        period=6.0,
+        period=2.0,
         actions=[
             Node(
                 package='ros_gz_sim',
@@ -85,7 +60,7 @@ def generate_launch_description():
     
     # Launch robot_state_publisher after a relative 2-second delay
     robot_state_publisher = TimerAction(
-        period=6.0,
+        period=2.0,
         actions=[
             Node(
                 package='robot_state_publisher',
@@ -102,7 +77,7 @@ def generate_launch_description():
     
     # Launch joint_state_publisher after a relative 3-second delay
     joint_state_publisher = TimerAction(
-        period=7.0,
+        period=3.0,
         actions=[
             Node(
                 package='joint_state_publisher',
@@ -116,7 +91,7 @@ def generate_launch_description():
     
     # Launch the ROS–Gazebo bridge after a relative 2-second delay
     bridge_node = TimerAction(
-        period=7.0,
+        period=3.0,
         actions=[
             Node(
                 package='ros_gz_bridge',
@@ -143,7 +118,7 @@ def generate_launch_description():
     
     # Launch RViz after a relative 5-second delay to allow time for TF publishers to populate the cache
     rviz_node = TimerAction(
-        period=9.0,
+        period=5.0,
         actions=[
             Node(
                 package='rviz2',
@@ -157,11 +132,8 @@ def generate_launch_description():
     )
     
     return LaunchDescription([
-        dummy_gazebo,
-        shutdown_dummy,
         gz_sim,
         static_tf_lidar,
-        # static_tf_odom,
         spawn_entity,
         robot_state_publisher,
         joint_state_publisher,

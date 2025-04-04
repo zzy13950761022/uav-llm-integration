@@ -1,41 +1,17 @@
 ########################################
-# Base Image & Environment Variables
+# Stage 1: Builder Stage (Heavy Build Steps)
 ########################################
-FROM ubuntu:24.04
+FROM ubuntu:24.04 AS builder
 ENV DEBIAN_FRONTEND=noninteractive
-ARG SAFETY_STOP_DISTANCE
-ARG MAX_FORWARD_SPEED
-ARG MAX_REVERSE_SPEED
-ARG MAX_TURN_LEFT_SPEED
-ARG MAX_TURN_RIGHT_SPEED
-ARG AREA_THRESHOLD
-ARG LLM_URL
-ARG LLM_MODEL
-ARG LLM_TEMPERATURE
-ARG LLM_API_INTERVAL
-ARG LLM_PAUSE
-ENV SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
-    MAX_FORWARD_SPEED=${MAX_FORWARD_SPEED} \
-    MAX_REVERSE_SPEED=${MAX_REVERSE_SPEED} \
-    MAX_TURN_LEFT_SPEED=${MAX_TURN_LEFT_SPEED} \
-    MAX_TURN_RIGHT_SPEED=${MAX_TURN_RIGHT_SPEED} \
-    AREA_THRESHOLD=${AREA_THRESHOLD} \
-    LLM_URL=${LLM_URL} \
-    LLM_MODEL=${LLM_MODEL} \
-    LLM_TEMPERATURE=${LLM_TEMPERATURE} \
-    LLM_API_INTERVAL=${LLM_API_INTERVAL} \
-    LLM_PAUSE=${LLM_PAUSE}
 
 ########################################
 # Install OS Dependencies & Tools
 ########################################
 RUN apt-get update && apt-get install -y \
     curl \
-    gnupg2 \
     lsb-release \
     sudo \
-    software-properties-common \
-    usbutils \
+    python3-pip \
     && rm -rf /var/lib/apt/lists/*
 
 ########################################
@@ -65,31 +41,29 @@ RUN apt-get update && apt-get install -y \
     python3-colcon-common-extensions \
     ros-jazzy-ros-gz-sim \
     ros-jazzy-ros-gz-bridge \
-    ros-jazzy-xacro \
     ros-jazzy-joint-state-publisher \
     ros-jazzy-robot-state-publisher \
     ros-jazzy-rviz2 \
     ros-jazzy-sick-scan-xd \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 
 ########################################
-# Install Python & Additional Packages
+# Install Additional Packages
 ########################################
-RUN apt-get update && apt-get install -y python3-pip && rm -rf /var/lib/apt/lists/*
 RUN pip3 install --break-system-packages evdev numpy opencv-python requests torch transformers
 
-# Set a shared cache location for Hugging Face models
+# Set shared cache location for Hugging Face models
 ENV HF_HOME=/home/pioneer-container/.cache/huggingface
 
 ########################################
-# Install Build Tools and Build AriaCoda
+# Install and Build AriaCoda
 ########################################
 RUN apt-get update && apt-get install -y \
     git \
     make \
     g++ \
     doxygen \
- && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/*
 RUN git clone https://github.com/reedhedges/AriaCoda.git /opt/AriaCoda && \
     cd /opt/AriaCoda && \
     make -j6 && \
@@ -110,8 +84,8 @@ RUN echo "source /opt/ros/jazzy/setup.bash" >> /etc/bash.bashrc
 RUN useradd -m pioneer-container && \
     echo "pioneer-container:password" | chpasswd && \
     adduser pioneer-container sudo
-# Prepopulate a launch command in new .bashrc
-RUN echo 'echo "Usage: ros2 launch master_launch [sim.launch.py|actual.launch.py]"; history -s "ros2 launch master_launch "' >> /home/pioneer-container/.bashrc
+RUN echo 'echo "Usage: ros2 launch master_launch [sim.launch.py|actual.launch.py]"; history -s "ros2 launch master_launch "' \
+    >> /home/pioneer-container/.bashrc
 
 ########################################
 # Switch to New User and Setup Workspace
@@ -124,24 +98,47 @@ RUN python3 -c "from transformers import BlipProcessor, BlipForConditionalGenera
     BlipProcessor.from_pretrained('Salesforce/blip-image-captioning-base'); \
     BlipForConditionalGeneration.from_pretrained('Salesforce/blip-image-captioning-base')"
 
-# Create ROS Workspace
+# Create ROS Workspace and copy in project files
 RUN mkdir -p ~/uav-llm-integration/src
-
-# Copy project source and instructions into container
 COPY --chown=pioneer-container:pioneer-container src/ /home/pioneer-container/uav-llm-integration/src/
-COPY --chown=pioneer-container:pioneer-container prompt.txt /home/pioneer-container/uav-llm-integration/
+COPY --chown=pioneer-container:pioneer-container setup.txt /home/pioneer-container/uav-llm-integration/
 
 # Build the ROS workspace
 RUN /bin/bash -c "source /opt/ros/jazzy/setup.bash && cd ~/uav-llm-integration && colcon build"
-# Automatically source the ROS workspace in .bashrc
 RUN echo "source ~/uav-llm-integration/install/setup.bash" >> ~/.bashrc
 
 ########################################
-# Simulation Environment Variables & EntryPoint
+# Stage 2: Final Runtime Stage
 ########################################
+FROM builder
+
 # Set simulation-specific environment variables
 ENV GZ_SIM_RESOURCE_PATH=/home/pioneer-container/uav-llm-integration/install/uav_sim/share/
 ENV XDG_RUNTIME_DIR=/tmp/runtime-pioneer-container
+
+# Set variables
+ARG SAFETY_STOP_DISTANCE
+ARG MAX_FORWARD_SPEED
+ARG MAX_REVERSE_SPEED
+ARG MAX_TURN_LEFT_SPEED
+ARG MAX_TURN_RIGHT_SPEED
+ARG AREA_THRESHOLD
+ARG LLM_URL
+ARG LLM_MODEL
+ARG LLM_TEMPERATURE
+ARG LLM_API_INTERVAL
+ARG LLM_RUN
+ENV SAFETY_STOP_DISTANCE=${SAFETY_STOP_DISTANCE} \
+    MAX_FORWARD_SPEED=${MAX_FORWARD_SPEED} \
+    MAX_REVERSE_SPEED=${MAX_REVERSE_SPEED} \
+    MAX_TURN_LEFT_SPEED=${MAX_TURN_LEFT_SPEED} \
+    MAX_TURN_RIGHT_SPEED=${MAX_TURN_RIGHT_SPEED} \
+    AREA_THRESHOLD=${AREA_THRESHOLD} \
+    LLM_URL=${LLM_URL} \
+    LLM_MODEL=${LLM_MODEL} \
+    LLM_TEMPERATURE=${LLM_TEMPERATURE} \
+    LLM_API_INTERVAL=${LLM_API_INTERVAL} \
+    LLM_RUN=${LLM_RUN}
 
 # Set the default entrypoint to bash
 ENTRYPOINT ["/bin/bash"]

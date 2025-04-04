@@ -9,21 +9,21 @@ import time
 class CustomCameraNode(Node):
     def __init__(self):
         super().__init__('webcam_publisher')
-        # Publisher for the camera topic
         self.publisher_ = self.create_publisher(Image, '/camera', 10)
         self.bridge = CvBridge()
-        
-        # Open the default webcam (device index 0)
+        # Open the default webcam
         self.cap = cv2.VideoCapture(0)
         if not self.cap.isOpened():
             self.get_logger().error("Webcam could not be opened!")
             return
-        
         # Start a separate thread to continuously capture frames
         self.thread = threading.Thread(target=self.capture_loop, daemon=True)
         self.thread.start()
 
     def capture_loop(self):
+        '''
+        Continuously capture frames from the webcam and publish them
+        '''
         while rclpy.ok():
             ret, frame = self.cap.read()
             if not ret:
